@@ -153,7 +153,7 @@ const Header = () => {
         <div className="hidden md:flex items-center justify-end space-x-4 ml-auto">
 
           <Link href="/bloglist" className="flex items-center cursor-pointer hover:outline hover:outline-rose-700 px-2 py-1 rounded-sm ">
-            <img src="https://i.ibb.co/RkmFm7tZ/blog.png" alt="blog" className="mr-1 w-8 h-8" />
+            <img src="/blog.png" alt="blog" className="mr-1 w-8 h-8" />
             <span className="text-white font-semibold text-base">Blogs</span>
           </Link>
 

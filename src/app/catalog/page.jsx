@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-
+   
 const Catalog = () => {
   const catalogItems = [
     { title: "Food Salt", img: "/1.png", link: "/categorypage?category=food-salt" },

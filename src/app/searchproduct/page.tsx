@@ -38,18 +38,30 @@ const stockBadge = (product: Product) => {
 export default function SearchProductPage() {
   const searchParams = useSearchParams();
   const query = (searchParams.get("q") || "").trim().toLowerCase();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(6);
+  const PRODUCTS_PER_PAGE = 6;
 
   useEffect(() => {
     api.get("/api/products")
-      .then((response) => setProducts(response.data || []))
+      .then((response) => {
+        const data = response.data || [];
+        setAllProducts(data);
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  const matches = products.filter((product) =>
+  const matches = allProducts.filter((product) =>
     `${product.name} ${product.description} ${product.category}`.toLowerCase().includes(query)
   );
+
+  const loadMoreProducts = () => {
+    setVisibleCount(prevCount => prevCount + PRODUCTS_PER_PAGE);
+  };
+
+  const visibleProducts = matches.slice(0, visibleCount);
+  const hasMoreProducts = visibleProducts.length < matches.length;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-8">
@@ -85,63 +97,83 @@ export default function SearchProductPage() {
             No products matched your search.
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {matches.map((product) => {
-              const stock = stockBadge(product);
-              return (
-                <Link
-                  key={product._id}
-                  href={`/productdetail/${product._id}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/40 bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl h-full"
-                >
-                  {/* Fixed height image container with consistent sizing */}
-                  <div className="relative w-full h-55 flex-shrink-0 overflow-hidden bg-rose-50">
-                    {imageSrc(product.images?.[0]) ? (
-                      <div className="w-full h-full flex items-center justify-center overflow-hidden">
-                        <img
-                          src={imageSrc(product.images?.[0]) || ""}
-                          alt={product.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
+          <>
+            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleProducts.map((product) => {
+                const stock = stockBadge(product);
+                return (
+                  <Link
+                    key={product._id}
+                    href={`/productdetail/${product._id}`}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-white/40 bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl h-full"
+                  >
+                    {/* Fixed height image container with consistent sizing */}
+                    <div className="relative w-full h-55 flex-shrink-0 overflow-hidden bg-rose-50">
+                      {imageSrc(product.images?.[0]) ? (
+                        <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                          <img
+                            src={imageSrc(product.images?.[0]) || ""}
+                            alt={product.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-sm text-rose-300">
+                          No Image Available
+                        </div>
+                      )}
+                      <div className="absolute right-3 top-3">
+                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold shadow-sm ${stock.color}`}>
+                          {stock.label}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm text-rose-300">
-                        No Image Available
-                      </div>
-                    )}
-                    <div className="absolute right-3 top-3">
-                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold shadow-sm ${stock.color}`}>
-                        {stock.label}
-                      </span>
                     </div>
-                  </div>
 
-                  <div className="flex flex-1 flex-col justify-between p-5">
-                    <div>
-                      {/* Product name - Single line with ellipsis */}
-                      <h2 className="line-clamp-1 text-2xl font-bold text-rose-700 transition-colors group-hover:text-rose-700/95">
-                        {product.name}
-                      </h2>
+                    <div className="flex flex-1 flex-col justify-between p-5">
+                      <div>
+                        {/* Product name - Single line with ellipsis */}
+                        <h2 className="line-clamp-1 text-2xl font-bold text-rose-700 transition-colors group-hover:text-rose-700/95">
+                          {product.name}
+                        </h2>
+                        
+                        {/* Product description - Two lines with ellipsis */}
+                        <p className="mt-1.5 line-clamp-2 text-sm text-gray-600">
+                          {product.description}
+                        </p>
+                      </div>
                       
-                      {/* Product description - Two lines with ellipsis */}
-                      <p className="mt-1.5 line-clamp-2 text-sm text-gray-600">
-                        {product.description}
-                      </p>
+                      <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 group-hover:underline">
+                          View details
+                        </span>
+                        <span className="text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-rose-700">
+                          →
+                        </span>
+                      </div>
                     </div>
-                    
-                    <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-3">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 group-hover:underline">
-                        View details
-                      </span>
-                      <span className="text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-rose-700">
-                        →
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Load More Button */}
+            {hasMoreProducts && (
+              <div className="mt-10 text-center">
+                <button
+                  onClick={loadMoreProducts}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:from-rose-600 hover:to-rose-700 hover:shadow-lg"
+                >
+                  <span>Load More Products</span>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <p className="mt-2 text-xs text-gray-500">
+                  Showing {visibleProducts.length} of {matches.length} products
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>

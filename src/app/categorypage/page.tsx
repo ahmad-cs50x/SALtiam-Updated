@@ -150,7 +150,7 @@ export default function CategoryPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-1 flex-col justify-between px-5 py-2 ">
+                    <div className="flex flex-1 flex-col justify-between px-5 py-2">
                       <div>
                         <div className="mb-2 flex items-center gap-1.5">
                           <div className="flex items-center text-amber-500">
