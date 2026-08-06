@@ -78,7 +78,7 @@ const BlogList = () => {
             Our Blogs
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-rose-700/70 sm:text-base">
-            Discover pure, natural salt products crafted for every need.
+            Discover more knowledge about the pure himaliyan salt.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ const BlogList = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-6 lg:gap-8">
           {paginatedBlogs.map((blog) => (
             // Blog card
-            <a key={blog._id} href={`/blogdetail/${blog._id}`}
+            <Link key={blog._id} href={`/blogdetail/${blog._id}`}
               className="group flex flex-col bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300
                hover:shadow-2xl hover:-translate-y-3 h-full">
 
@@ -128,7 +128,7 @@ const BlogList = () => {
                   </span>
                 </div>
               </div>
-            </a>
+            </Link>
           ))}
 
           {/* Pagination Controls */}

@@ -99,7 +99,7 @@ const Header = () => {
           </a>
 
           <div className="flex-1 flex ml-5 justify-center px-3">
-            <form action="/search" method="GET" className="w-full max-w-xs">
+            <form action="/searchproduct" method="GET" className="w-full max-w-xs">
               <div className="flex items-center bg-rose-700 rounded-full px-3 py-1.5 shadow-sm">
                 <input
                   name="q"
@@ -132,7 +132,7 @@ const Header = () => {
             </Link>
 
             {/* Search Form */}
-            <form action="/search" method="GET" className="flex bg-rose-700 rounded-r-full flex-1">
+            <form action="/searchproduct" method="GET" className="flex bg-rose-700 rounded-r-full flex-1">
               <div className="flex flex-1">
                 <input
                   name="q"

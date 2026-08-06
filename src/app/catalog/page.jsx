@@ -6,14 +6,14 @@ import React from "react";
 
 const Catalog = () => {
   const catalogItems = [
-    { title: "Food Salt", img: "/1.png", link: "/categories/food-salt" },
-    { title: "Sea Salt", img: "/2.png", link: "/categories/sea-salt" },
-    { title: "Animal Salt", img: "/3.png", link: "/categories/animal-salt" },
-    { title: "Home & Decor", img: "/4.png", link: "/categories/home-decor" },
-    { title: "Rock Salt", img: "/5.png", link: "/categories/rock-salt" },
-    { title: "Salt Brick", img: "/6.png", link: "/categories/salt-brick" },
-    { title: "Salt Lamps", img: "/7.png", link: "/categories/salt-lamps" },
-    { title: "Salt & Beauty", img: "/8.png", link: "/categories/salt-beauty" },
+    { title: "Food Salt", img: "/1.png", link: "/categorypage?category=food-salt" },
+    { title: "Sea Salt", img: "/2.png", link: "/categorypage?category=sea-salt" },
+    { title: "Animal Salt", img: "/3.png", link: "/categorypage?category=animal-salt" },
+    { title: "Home & Decor", img: "/4.png", link: "/categorypage?category=home-decor" },
+    { title: "Rock Salt", img: "/5.png", link: "/categorypage?category=rock-salt" },
+    { title: "Salt Brick", img: "/6.png", link: "/categorypage?category=salt-brick" },
+    { title: "Salt Lamps", img: "/7.png", link: "/categorypage?category=salt-lamps" },
+    { title: "Salt & Beauty", img: "/8.png", link: "/categorypage?category=salt-beauty" },
   ];
 
   return (
@@ -56,7 +56,7 @@ const Catalog = () => {
 
                 {/* Title */}
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold text-rose-900 transition-colors duration-300 group-hover:text-rose-700 sm:text-lg">
+                  <h3 className="text-2xl font-semibold text-rose-900 transition-colors duration-300 group-hover:text-rose-700 sm:text-2xl">
                     {item.title}
                   </h3>
                   <span className="mt-0.5 inline-block text-[10px] font-medium text-rose-500 opacity-0 transition-all duration-300 group-hover:opacity-100 sm:text-xs">

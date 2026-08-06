@@ -1,79 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { dbConnect } from '@/lib/db';
-import Product from '@/models/Product';
-import { promises as fs } from 'fs';
-import path from 'path';
+"use client";
 
-async function saveUploadedFile(file: any): Promise<string> {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const filename = Date.now() + '-' + file.name.replace(/\s+/g, '_');
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-  await fs.mkdir(uploadDir, { recursive: true });
-  await fs.writeFile(path.join(uploadDir, filename), buffer);
-  return filename;
-}
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/apiClient";
 
-export async function GET(req: NextRequest) {
-  try {
-    await dbConnect();
-    const products = await Product.find().sort({ createdAt: -1 });
-    return NextResponse.json(products);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
+type Product = { _id: string; name: string; description: string; category: string; availability?: string; images?: string[] };
 
-export async function POST(req: NextRequest) {
-  try {
-    await dbConnect();
-    const contentType = req.headers.get('content-type') || '';
-    let name = '';
-    let description = '';
-    let category = 'food-salt';
-    let availability = 'In Stock';
-    let itemsSold = 0;
-    let isFeatured = false;
-    const images: string[] = [];
+const categoryName = (category: string) => category.split("-").map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ");
 
-    if (contentType.includes('multipart/form-data')) {
-      const formData = await req.formData();
-      name = formData.get('name')?.toString() || '';
-      description = formData.get('description')?.toString() || '';
-      category = formData.get('category')?.toString() || 'food-salt';
-      availability = formData.get('availability')?.toString() || 'In Stock';
-      itemsSold = Number(formData.get('itemsSold') || 0);
-      isFeatured = formData.get('isFeatured') === 'true' || formData.get('isFeatured') === 'on';
-      for (const file of formData.getAll('images')) {
-        if (file && typeof file === 'object' && 'arrayBuffer' in file && file.name) {
-          images.push(await saveUploadedFile(file));
-        } else if (typeof file === 'string' && file.trim()) {
-          images.push(file);
-        }
-      }
-    } else {
-      const body = await req.json();
-      name = body.name || '';
-      description = body.description || '';
-      category = body.category || 'food-salt';
-      availability = body.availability || 'In Stock';
-      itemsSold = Number(body.itemsSold || 0);
-      isFeatured = body.isFeatured === true || body.isFeatured === 'true' || body.isFeatured === 'on';
-      if (Array.isArray(body.images)) {
-        images.push(...body.images);
-      }
-    }
+export default function CategoryPage() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category") || "";
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const product = await Product.create({
-      name,
-      description,
-      category,
-      availability,
-      itemsSold,
-      isFeatured,
-      images
-    });
-    return NextResponse.json(product, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  useEffect(() => {
+    api.get("/api/products")
+      .then((response) => setProducts((response.data || []).filter((product: Product) => !category || product.category === category)))
+      .finally(() => setLoading(false));
+  }, [category]);
+
+  return <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-8">
+    <div className="mx-auto max-w-6xl">
+      <Link href="/catalog" className="text-sm font-semibold text-rose-700 hover:underline">← Back to catalog</Link>
+      <h1 className="mt-5 text-3xl font-bold text-rose-900 sm:text-4xl">{category ? categoryName(category) : "All Products"}</h1>
+      {loading ? <p className="mt-10 text-rose-800">Loading products...</p> : products.length === 0 ? <p className="mt-10 text-rose-800">No products are available in this category yet.</p> :
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => <Link key={product._id} href={`/productdetail/${product._id}`} className="overflow-hidden rounded-2xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+            <div className="h-56 bg-rose-100">{product.images?.[0] && <img src={`/uploads/${product.images[0]}`} alt={product.name} className="h-full w-full object-cover" />}</div>
+            <div className="p-5"><h2 className="text-xl font-bold text-gray-900">{product.name}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><p className="mt-4 text-sm font-semibold text-rose-600">{product.availability || "In Stock"} · View details →</p></div>
+          </Link>)}
+        </div>}
+    </div>
+  </main>;
 }
