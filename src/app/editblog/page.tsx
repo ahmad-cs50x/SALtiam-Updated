@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
 import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Link2, Image as ImageIcon, Table, Minus, Plus } from 'lucide-react';
 
 const EditBlog = () => {
@@ -23,7 +23,7 @@ const EditBlog = () => {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const res = await axios.get(`/api/blogs/${id}`);
+        const res = await api.get(`/api/blogs/${id}`);
         const data = res.data;
         setBlog(data);
         if (data.image) {
@@ -137,7 +137,7 @@ const EditBlog = () => {
       }
     }
     try {
-      await axios.put(`/api/blogs/${id}`, formData);
+      await api.put(`/api/blogs/${id}`, formData);
       alert('Blog updated successfully!');
       router.push('/admindashboard');
     } catch (err) {

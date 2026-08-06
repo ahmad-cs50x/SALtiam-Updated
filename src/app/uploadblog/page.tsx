@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
 
 import { 
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, 
@@ -106,7 +106,7 @@ const UploadBlog = () => {
     if (bannerImage) formData.append('images', bannerImage);
 
     try {
-      await axios.post('/api/blogs', formData);
+      await api.post('/api/blogs', formData);
       alert('Blog uploaded successfully!');
       router.push('/admindashboard');
     } catch (err) {

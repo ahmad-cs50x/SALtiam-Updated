@@ -2,8 +2,8 @@
 import Link from "next/link";
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Logo from "../../../../components/Logo"; 
-import axios from 'axios';
+import Logo from "../../../components/Logo"; 
+import { api } from '../../lib/apiClient';
 
 const ViewBlog = () => {
   const params = useParams();
@@ -21,7 +21,7 @@ const ViewBlog = () => {
     const fetchBlog = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`/api/blogs/${id}`);
+        const res = await api.get(`/api/blogs/${id}`);
         setBlog(res.data);
         console.log('Fetched blog data:', res.data);
         setError(null);

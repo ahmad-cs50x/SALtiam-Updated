@@ -1,5 +1,5 @@
 "use client";
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from 'react';
@@ -29,7 +29,7 @@ const BlogList = () => {
     const fetchBlogs = async () => {
       try {
         console.log('Fetching blogs from API...');
-        const res = await axios.get('/api/blogs');
+        const res = await api.get('/api/blogs');
         console.log('Blogs received:', res.data);
         setBlogs(Array.isArray(res.data) ? res.data : []);
         setError(null);

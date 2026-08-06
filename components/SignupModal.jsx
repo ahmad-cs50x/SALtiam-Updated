@@ -3,7 +3,7 @@ import Toast from "./Toast";
 import { signIn } from "next-auth/react";
 import Link from 'next/link';
 
-import axios from "axios";
+import { api } from "../src/lib/apiClient";
 
 const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const [step, setStep] = useState(1); // 1: Enter details, 2: Verify OTP
@@ -41,7 +41,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     }
     setLoading(true);
     try {
-      await axios.post("/api/auth/send-otp", {
+      await api.post("/api/auth/send-otp", {
         email: formData.email
       });
       setToast({ message: "OTP sent to your email!", type: "success" });
@@ -58,7 +58,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     setError("");
     setLoading(true);
     try {
-      const response = await axios.post("/api/auth/register", {
+      const response = await api.post("/api/auth/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,

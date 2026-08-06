@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
 import { toast } from 'react-toastify';
 import { fetchBlogs, adminLogout, changePassword, forgetPassword, verifyOTP, resetPassword } from '../../services/api';
 
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
     fetchBlogs().then(res => setBlogs(res.data || [])).catch(() => setError('Failed to load blogs'));
     
     // Fetch reviews
-    axios.get('/api/reviews')
+    api.get('/api/reviews')
       .then(res => setReviews(res.data || []))
       .catch(err => console.error("Failed to load reviews", err));
 
@@ -104,7 +104,7 @@ const AdminDashboard = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('/api/products');
+      const res = await api.get('/api/products');
       setProducts(res.data || []);
     } catch (err) {
       console.error("Failed to load products", err);
@@ -113,7 +113,7 @@ const AdminDashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('/api/users');
+      const res = await api.get('/api/users');
       const usersData = Array.isArray(res.data) ? res.data : res.data?.data || [];
       setUsers(usersData);
     } catch (err) {
@@ -194,7 +194,7 @@ const AdminDashboard = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure?')) {
       try {
-        await axios.delete(`/api/blogs/${id}`);
+        await api.delete(`/api/blogs/${id}`);
         // Refresh blogs from server to ensure UI consistency
         const refreshed = await fetchBlogs();
         setBlogs(refreshed.data || []);
@@ -210,7 +210,7 @@ const AdminDashboard = () => {
   const handleDeleteReview = async (id) => {
     if (window.confirm('Are you sure you want to delete this review?')) {
       try {
-        await axios.delete(`/api/reviews/${id}`, { withCredentials: true });
+        await api.delete(`/api/reviews/${id}`, { credentials: 'include' });
         setReviews(prev => prev.filter(r => r._id !== id));
         toast.success('Review deleted successfully');
       } catch (err) {
@@ -228,7 +228,7 @@ const AdminDashboard = () => {
   const handleDeleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       try {
-        await axios.delete(`/api/users/${id}`);
+        await api.delete(`/api/users/${id}`);
         setUsers(prev => prev.filter(u => u._id !== id));
         toast.success('User deleted successfully');
       } catch (err) {
@@ -257,10 +257,10 @@ const AdminDashboard = () => {
 
     try {
       if (editingProduct) {
-        await axios.put(`/api/products/${editingProduct._id}`, formData);
+        await api.put(`/api/products/${editingProduct._id}`, formData);
         toast.success('Product updated successfully');
       } else {
-        await axios.post('/api/products', formData);
+        await api.post('/api/products', formData);
         toast.success('Product created successfully');
       }
       setShowProductModal(false);
@@ -276,7 +276,7 @@ const AdminDashboard = () => {
   const handleDeleteProduct = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await axios.delete(`/api/products/${id}`);
+        await api.delete(`/api/products/${id}`);
         toast.success('Product deleted successfully');
         fetchProducts();
       } catch (err) {
@@ -315,7 +315,7 @@ const AdminDashboard = () => {
 
   const toggleFeatured = async (productId, currentStatus) => {
     try {
-      await axios.put(`/api/products/${productId}`, {
+      await api.put(`/api/products/${productId}`, {
         isFeatured: !currentStatus
       });
       await fetchProducts();
