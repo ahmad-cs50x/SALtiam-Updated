@@ -2,8 +2,8 @@ import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { dbConnect } from "../../../lib/db";
-import User from "../../../models/User";
+import { dbConnect } from "../../../../lib/db";
+import User from "../../../../models/User";
 
 const authOptions = {
   providers: [
@@ -15,7 +15,7 @@ const authOptions = {
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -39,8 +39,8 @@ const authOptions = {
           email: user.email,
           name: user.name || user.email.split("@")[0],
         };
-      }
-    })
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
@@ -62,11 +62,11 @@ const authOptions = {
         session.user.email = token.email as string;
       }
       return session;
-    }
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-const handler = NextAuth(authOptions);
+const { handlers } = NextAuth(authOptions);
 
-export { handler as GET, handler as POST };
+export const { GET, POST } = handlers;
