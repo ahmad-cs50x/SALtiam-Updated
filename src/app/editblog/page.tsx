@@ -139,7 +139,7 @@ const EditBlog = () => {
     }
     try {
       await api.put(`/api/blogs/${id}`, formData);
-      toast.success('Blog updated in the database successfully!');
+      toast.success('Blog Updated Successfully!');
       router.push('/admindashboard');
     } catch (err) {
       alert('Update failed — check server');
