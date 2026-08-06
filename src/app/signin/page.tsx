@@ -62,7 +62,7 @@ const SignInPage = () => {
   const handleGoogleSignIn = async () => {
     try {
       toast.info("🔄 Redirecting to Google...");
-      await signIn("google", { callbackUrl: "/admindashboard" });
+      await signIn("google", { callbackUrl: "/" });
     } catch (error) {
       console.error("Google sign in error:", error);
       toast.error("❌ Failed to connect to Google. Please try again.");

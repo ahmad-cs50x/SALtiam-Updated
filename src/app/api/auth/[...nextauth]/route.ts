@@ -52,6 +52,33 @@ const authOptions = {
     signIn: "/signin",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider !== "google" || !user.email) {
+        return true;
+      }
+
+      try {
+        await dbConnect();
+        const email = user.email.toLowerCase();
+        const existingUser = await User.findOne({ email });
+
+        if (!existingUser) {
+          await User.create({
+            name: user.name || email.split("@")[0],
+            email,
+            // Google-authenticated users do not use credentials login. Store a
+            // random hash to satisfy the shared User schema safely.
+            password: await bcrypt.hash(`${crypto.randomUUID()}-${Date.now()}`, 10),
+            role: email === SUPER_USER_EMAIL ? "super" : "normal",
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error("Failed to save Google user:", error);
+        return false;
+      }
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;

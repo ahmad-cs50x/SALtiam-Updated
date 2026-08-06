@@ -301,7 +301,7 @@ const Home = () => {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 px-0 sm:px-12">
           {featuredProducts.length > 0 ? (
             featuredProducts.map((product) => (
-              <Link key={product._id} href={`/product/${product._id}`} className="block group">
+              <Link key={product._id} href={`/productdetail/${product._id}`} className="block group">
                 <div className="bg-rose-200 p-1 sm:p-6 w-64 rounded-2xl shadow-lg h-full flex flex-col">
                   <div className="h-48 w-full bg-white rounded-xl mb-4 overflow-hidden flex items-center justify-center">
                     <img 
