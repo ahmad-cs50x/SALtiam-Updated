@@ -20,6 +20,12 @@ type Product = {
 const categoryName = (category: string) => 
   category.split("-").map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ");
 
+const imageSrc = (image?: string) => {
+  if (!image) return null;
+  if (image.startsWith("http") || image.startsWith("data:")) return image;
+  return image.startsWith("/uploads/") ? image : `/uploads/${image.replace(/^\/?uploads\//, "")}`;
+};
+
 export default function CategoryPage() {
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "";
@@ -62,7 +68,7 @@ export default function CategoryPage() {
       <div className="mx-auto max-w-6xl">
         <Link 
           href="/catalog" 
-          className="inline-flex items-center text-sm font-semibold text-rose-800 transition-colors hover:text-rose-950"
+          className="inline-flex items-center text-xl font-semibold text-rose-800 transition-colors hover:text-rose-800"
         >
           ← Back to catalog
         </Link>
@@ -87,7 +93,7 @@ export default function CategoryPage() {
             <p className="font-medium text-rose-900">No products are available in this category yet.</p>
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 h-100 w-full grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => {
               const stock = getStockBadge(product);
               const rating = product.rating ?? 4.5;
@@ -102,7 +108,7 @@ export default function CategoryPage() {
                   <div className="relative h-60 w-full overflow-hidden bg-rose-50">
                     {product.images?.[0] ? (
                       <img 
-                        src={`/uploads/${product.images[0]}`} 
+                        src={imageSrc(product.images[0]) || ""} 
                         alt={product.name} 
                         className="h-full w-full object-cover" 
                       />
@@ -130,7 +136,7 @@ export default function CategoryPage() {
                         <span className="text-xs text-gray-500">({numReviews} reviews)</span>
                       </div>
 
-                      <h2 className="line-clamp-1 text-lg font-bold text-gray-900 transition-colors group-hover:text-rose-600">
+                      <h2 className="line-clamp-1 text-2xl font-bold text-rose-700 transition-colors group-hover:text-rose-700/95">
                         {product.name}
                       </h2>
                       <p className="mt-1.5 line-clamp-2 text-sm text-gray-600">
@@ -142,7 +148,7 @@ export default function CategoryPage() {
                       <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 group-hover:underline">
                         View details
                       </span>
-                      <span className="text-gray-400 transition-transform group-hover:translate-x-1">→</span>
+                      <span className="text-gray-400 transition-transform group-hover:text-rose-700 group-hover:translate-x-1">→</span>
                     </div>
                   </div>
                 </Link>

@@ -49,13 +49,28 @@ export default function ProductDetailPage() {
   // Hover star state
   const [hoveredRating, setHoveredRating] = useState(0);
 
+  // Pagination state for reviews - Changed to 3
+  const [visibleReviews, setVisibleReviews] = useState<Review[]>([]);
+  const [reviewCount, setReviewCount] = useState(3);
+  const REVIEWS_PER_PAGE = 3;
+
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
   useEffect(() => {
     if (!params?.id) return;
     api.get(`/api/products/${params.id}`)
       .then((response) => {
         const prod = response.data;
         setProduct(prod);
-        api.get(`/api/reviews?productId=${prod._id}`).then((reviewsResponse) => setUserReviews(reviewsResponse.data || [])).catch(() => setUserReviews([]));
+        api.get(`/api/reviews?productId=${prod._id}`).then((reviewsResponse) => {
+          const reviews = reviewsResponse.data || [];
+          setUserReviews(reviews);
+          setVisibleReviews(reviews.slice(0, REVIEWS_PER_PAGE));
+        }).catch(() => {
+          setUserReviews([]);
+          setVisibleReviews([]);
+        });
         // Fetch similar products based on category
         if (prod?.category) {
           api.get("/api/products")
@@ -85,15 +100,31 @@ export default function ProductDetailPage() {
     setReviewError("");
     try {
       const response = await api.post("/api/reviews", { productId: product?._id, rating: reviewRating, comment: reviewComment });
-      setUserReviews((reviews) => [response.data, ...reviews]);
+      const newReview = response.data;
+      const updatedReviews = [newReview, ...userReviews];
+      setUserReviews(updatedReviews);
+      setVisibleReviews(updatedReviews.slice(0, REVIEWS_PER_PAGE));
+      setReviewCount(REVIEWS_PER_PAGE);
       setReviewComment("");
       setReviewRating(5);
       setHoveredRating(0);
+      
+      // Show success toast
+      setToast({ message: "✅ Review submitted successfully!", type: 'success' });
+      setTimeout(() => setToast(null), 4000);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Could not save your review.";
       setReviewError(message);
+      setToast({ message: `❌ ${message}`, type: 'error' });
+      setTimeout(() => setToast(null), 4000);
     }
     finally { setSubmittingReview(false); }
+  };
+
+  const loadMoreReviews = () => {
+    const newCount = reviewCount + REVIEWS_PER_PAGE;
+    setReviewCount(newCount);
+    setVisibleReviews(userReviews.slice(0, newCount));
   };
 
   if (error) {
@@ -110,7 +141,11 @@ export default function ProductDetailPage() {
   }
 
   const images = product.images && product.images.length > 0 ? product.images : [];
-  const imageSrc = (image?: string) => image && (image.startsWith("http") || image.startsWith("data:") || image.startsWith("/")) ? image : image ? `/uploads/${image}` : null;
+  const imageSrc = (image?: string) => {
+    if (!image) return null;
+    if (image.startsWith("http") || image.startsWith("data:")) return image;
+    return image.startsWith("/uploads/") ? image : `/uploads/${image.replace(/^\/?uploads\//, "")}`;
+  };
   const currentImage = imageSrc(images[selectedImageIndex]);
 
   const stockStatus = product.availability || "In Stock";
@@ -119,12 +154,25 @@ export default function ProductDetailPage() {
   const totalReviews = userReviews.length;
   const avgRating = totalReviews ? userReviews.reduce((total, review) => total + review.rating, 0) / totalReviews : 0;
 
+  const hasMoreReviews = visibleReviews.length < userReviews.length;
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-8">
+    <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-3">
       <div className="mx-auto max-w-6xl">
-        <Link href="/catalog" className="inline-flex items-center text-sm font-semibold text-rose-800 transition-colors hover:text-rose-950">
+        <Link href="/catalog" className="inline-flex items-center text-xl font-semibold text-rose-800 transition-colors hover:text-rose-950">
           ← Back to catalog
         </Link>
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className={`fixed top-6 right-6 z-50 max-w-md animate-slide-in rounded-2xl px-6 py-4 shadow-2xl backdrop-blur-md transition-all duration-1000 ${
+            toast.type === 'success' 
+              ? 'bg-emerald-50/95 border border-emerald-200 text-emerald-800' 
+              : 'bg-red-50/95 border border-red-200 text-red-800'
+          }`}>
+            <p className="text-sm font-medium">{toast.message}</p>
+          </div>
+        )}
 
         {/* Main Product Container */}
         <article className="mt-6 overflow-visible rounded-3xl bg-white p-6 sm:p-10 shadow-xl">
@@ -132,13 +180,14 @@ export default function ProductDetailPage() {
 
             {/* Left Column: Vertical Thumbnails + Large Image with Zoom */}
             <div className="lg:col-span-7 flex flex-col sm:flex-row gap-4">
+              
               {/* Thumbnails (Top to bottom) */}
               <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto max-h-[450px] scrollbar-thin">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all ${selectedImageIndex === idx ? "border-rose-600 ring-2 ring-rose-300" : "border-gray-200 hover:border-gray-400"
+                    className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all ${selectedImageIndex === idx ? "border-rose-600" : "border-rose-300 hover:border-rose-600"
                       }`}
                   >
                     <img src={imageSrc(img) || ""} alt={`${product.name} ${idx + 1}`} className="h-full w-full object-cover" />
@@ -203,7 +252,7 @@ export default function ProductDetailPage() {
                   </span>
                 </div>
 
-                <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold text-rose-800 tracking-tight">
+                <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold text-rose-700 tracking-tight">
                   {product.name}
                 </h1>
 
@@ -255,26 +304,46 @@ export default function ProductDetailPage() {
           <div className="lg:col-span-7 bg-white/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-lg">
             <h2 className="text-2xl font-bold text-rose-800 mb-6">Customer Reviews ({totalReviews})</h2>
 
-            <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
-              {userReviews.length === 0 ? (
+            <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {visibleReviews.length === 0 ? (
                 <p className="text-sm text-gray-500 italic">No reviews yet. Be the first to add one!</p>
               ) : (
-                userReviews.map((rev) => (
-                  <div key={rev._id} className="border-b border-gray-100 pb-4 last:border-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-gray-900">{rev.userName}</h4>
-                      <span className="text-xs text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</span>
+                <>
+                  {visibleReviews.map((rev) => (
+                    <div key={rev._id} className="border-b border-gray-100 pb-4 last:border-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-gray-900">{rev.userName}</h4>
+                        <span className="text-xs text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1 my-1 text-amber-500">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className={`h-3.5 w-3.5 ${i < rev.rating ? "fill-current" : "text-gray-300"}`} viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{rev.comment}</p>
                     </div>
-                    <div className="flex items-center gap-1 my-1 text-amber-500">
-                      {[...Array(5)].map((_, i) => (
-                        <svg key={i} className={`h-3.5 w-3.5 ${i < rev.rating ? "fill-current" : "text-gray-300"}`} viewBox="0 0 20 20">
-                          <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                  ))}
+                  
+                  {/* Load More Button */}
+                  {hasMoreReviews && (
+                    <div className="pt-3 text-center">
+                      <button
+                        onClick={loadMoreReviews}
+                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:from-rose-600 hover:to-rose-700 hover:shadow-lg"
+                      >
+                        <span>Load More Reviews</span>
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
-                      ))}
+                      </button>
+                      <p className="mt-2 text-xs text-gray-400">
+                        Showing {visibleReviews.length} of {userReviews.length} reviews
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{rev.comment}</p>
-                  </div>
-                ))
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -365,7 +434,7 @@ export default function ProductDetailPage() {
                 >
                   <div className="h-48 w-full bg-rose-50 overflow-hidden">
                     {item.images?.[0] && (
-                      <img src={`/uploads/${item.images[0]}`} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <img src={imageSrc(item.images[0]) || ""} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     )}
                   </div>
                   <div className="p-5 flex flex-col flex-1 justify-between">

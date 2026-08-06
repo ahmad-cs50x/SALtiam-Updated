@@ -5,7 +5,35 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/apiClient";
 
-type Product = { _id: string; name: string; description: string; category: string; images?: string[] };
+type Product = {
+  _id: string;
+  name: string;
+  description: string;
+  category: string;
+  availability?: string;
+  images?: string[];
+  stockCount?: number;
+};
+
+const imageSrc = (image?: string) => {
+  if (!image) return null;
+  if (image.startsWith("http") || image.startsWith("data:")) return image;
+  return image.startsWith("/uploads/") ? image : `/uploads/${image.replace(/^\/?uploads\//, "")}`;
+};
+
+const stockBadge = (product: Product) => {
+  const status = product.availability || "In Stock";
+  if (status.toLowerCase().includes("out")) {
+    return { label: status, color: "bg-red-100 text-red-800 border-red-300" };
+  }
+  if (status.toLowerCase().includes("low") || (product.stockCount ?? Infinity) <= 5) {
+    return {
+      label: status.toLowerCase().includes("low") ? status : "Low Stock",
+      color: "bg-amber-100 text-amber-800 border-amber-300"
+    };
+  }
+  return { label: status, color: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+};
 
 export default function SearchProductPage() {
   const searchParams = useSearchParams();
@@ -13,13 +41,102 @@ export default function SearchProductPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { api.get("/api/products").then((response) => setProducts(response.data || [])).finally(() => setLoading(false)); }, []);
-  const matches = products.filter((product) => `${product.name} ${product.description} ${product.category}`.toLowerCase().includes(query));
+  useEffect(() => {
+    api.get("/api/products")
+      .then((response) => setProducts(response.data || []))
+      .finally(() => setLoading(false));
+  }, []);
 
-  return <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-8"><div className="mx-auto max-w-6xl">
-    <h1 className="text-3xl font-bold text-rose-900">{query ? `Search results for “${query}”` : "Search products"}</h1>
-    {loading ? <p className="mt-8 text-rose-800">Searching products...</p> : !query ? <p className="mt-8 text-rose-800">Enter a product name in the search bar.</p> : matches.length === 0 ? <p className="mt-8 text-rose-800">No products matched your search.</p> : <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {matches.map((product) => <Link key={product._id} href={`/productdetail/${product._id}`} className="overflow-hidden rounded-2xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl"><div className="h-52 bg-rose-100">{product.images?.[0] && <img src={`/uploads/${product.images[0]}`} alt={product.name} className="h-full w-full object-cover" />}</div><div className="p-5"><h2 className="text-xl font-bold text-gray-900">{product.name}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><p className="mt-4 text-sm font-semibold text-rose-600">View details →</p></div></Link>)}
-    </div>}
-  </div></main>;
+  const matches = products.filter((product) =>
+    `${product.name} ${product.description} ${product.category}`.toLowerCase().includes(query)
+  );
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-8">
+      <div className="mx-auto max-w-6xl">
+        <Link
+          href="/catalog"
+          className="inline-flex items-center text-xl font-semibold text-rose-800 hover:text-rose-950"
+        >
+          ← Back to catalog
+        </Link>
+
+        <div className="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <h1 className="text-3xl font-extrabold tracking-tight text-rose-800 sm:text-4xl">
+            {query ? `Search results for “${query}”` : "Search products"}
+          </h1>
+          {query && !loading && (
+            <span className="inline-flex self-start rounded-full bg-white/60 px-3 py-1 text-sm font-medium text-rose-800 backdrop-blur-sm sm:self-auto">
+              {matches.length} results
+            </span>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="mt-16 text-center text-lg font-medium text-rose-900">
+            Searching products...
+          </div>
+        ) : !query ? (
+          <div className="mt-16 rounded-2xl bg-white/60 p-12 text-center text-rose-900">
+            Enter a product name in the header search bar.
+          </div>
+        ) : matches.length === 0 ? (
+          <div className="mt-16 rounded-2xl bg-white/60 p-12 text-center text-rose-900">
+            No products matched your search.
+          </div>
+        ) : (
+          <div className="mt-8 h-100 w-full grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {matches.map((product) => {
+              const stock = stockBadge(product);
+              return (
+                <Link
+                  key={product._id}
+                  href={`/productdetail/${product._id}`}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/40 bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+                >
+                  <div className="relative h-60 w-full overflow-hidden bg-rose-50">
+                    {imageSrc(product.images?.[0]) ? (
+                      <img
+                        src={imageSrc(product.images?.[0]) || ""}
+                        alt={product.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-sm text-rose-300">
+                        No Image Available
+                      </div>
+                    )}
+                    <div className="absolute right-3 top-3">
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold shadow-sm ${stock.color}`}>
+                        {stock.label}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-1 flex-col justify-between p-5">
+                    <div>
+                      <h2 className="line-clamp-1 text-2xl font-bold text-rose-700">
+                        {product.name}
+                      </h2>
+                      <p className="mt-1.5 line-clamp-2 text-sm text-gray-600">
+                        {product.description}
+                      </p>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-3">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 group-hover:underline">
+                        View details
+                      </span>
+                      <span className="text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-rose-700">
+                        →
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </main>
+  );
 }
