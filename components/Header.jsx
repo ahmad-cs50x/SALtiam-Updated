@@ -152,12 +152,12 @@ const Header = () => {
         {/* Right Side Icons (Desktop) */}
         <div className="hidden md:flex items-center justify-end space-x-4 ml-auto">
 
-          <Link href="/bloglist" className="flex items-center cursor-pointer hover:outline hover:outline-rose-700 px-2 py-1 rounded-sm ">
+          <Link href="/bloglist" className="flex items-center cursor-pointer hover:outline-3 hover:outline-rose-700 px-2 py-1 rounded-sm ">
             <img src="/blog.png" alt="blog" className="mr-1 w-8 h-8" />
             <span className="text-white font-semibold text-base">Blogs</span>
           </Link>
 
-          <div onClick={() => setIsDeliverOpen(true)} className="flex items-center cursor-pointer hover:outline hover:outline-rose-700 py-1 rounded-sm ">
+          <div onClick={() => setIsDeliverOpen(true)} className="flex items-center cursor-pointer hover:outline-3 hover:outline-rose-700 py-1 rounded-sm ">
             <img src="https://i.imghippo.com/files/FuW4002bEk.png" className="w-6 h-6 object-contain" alt="Location" />
             <div className="text-left leading-tight ml-2">
               <p className="text-white text-xs">Deliver to:</p>
@@ -176,7 +176,7 @@ const Header = () => {
                </button>
              </div>
           ) : (
-            <Link href='/signin' className="flex items-center gap-2 cursor-pointer hover:outline hover:outline-rose-700 px-2 py-1 rounded-sm ">
+            <Link href='/signin' className="flex items-center gap-2 cursor-pointer hover:outline-3  hover:outline-rose-700 px-2 py-1 rounded-sm ">
               <img src="/login.png" alt="login" className="w-8 h-8 sm:w-12 sm:h-12 md:w-9 md:h-9" />
               <p className="text-white text-base font-bold">Login</p> 
              </Link>

@@ -40,7 +40,7 @@ const DeliverModal = ({ isOpen, onClose }) => {
 
         <button
           onClick={onClose}
-          className="w-full bg-pink-600 text-white py-2 rounded-md hover:bg-pink-700">
+          className="w-full bg-rose-600 text-white py-2 rounded-md hover:bg-rose-700">
           Done
         </button>
       </div>
