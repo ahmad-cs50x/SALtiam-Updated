@@ -54,6 +54,10 @@ export default function ProductDetailPage() {
   const [reviewCount, setReviewCount] = useState(3);
   const REVIEWS_PER_PAGE = 3;
 
+  // Pagination state for similar products
+  const [visibleSimilarCount, setVisibleSimilarCount] = useState(3);
+  const SIMILAR_PRODUCTS_PER_PAGE = 3;
+
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -76,7 +80,8 @@ export default function ProductDetailPage() {
           api.get("/api/products")
             .then((res) => {
               const all = res.data || [];
-              setSimilarProducts(all.filter((p: Product) => p.category === prod.category && p._id !== prod._id));
+              const filtered = all.filter((p: Product) => p.category === prod.category && p._id !== prod._id);
+              setSimilarProducts(filtered);
             })
             .catch(() => { });
         }
@@ -127,6 +132,10 @@ export default function ProductDetailPage() {
     setVisibleReviews(userReviews.slice(0, newCount));
   };
 
+  const loadMoreSimilarProducts = () => {
+    setVisibleSimilarCount(prev => prev + SIMILAR_PRODUCTS_PER_PAGE);
+  };
+
   if (error) {
     return (
       <main className="min-h-screen bg-rose-100 p-12 text-center">
@@ -155,6 +164,8 @@ export default function ProductDetailPage() {
   const avgRating = totalReviews ? userReviews.reduce((total, review) => total + review.rating, 0) / totalReviews : 0;
 
   const hasMoreReviews = visibleReviews.length < userReviews.length;
+  const visibleSimilarProducts = similarProducts.slice(0, visibleSimilarCount);
+  const hasMoreSimilarProducts = visibleSimilarProducts.length < similarProducts.length;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-3">
@@ -326,7 +337,7 @@ export default function ProductDetailPage() {
                     </div>
                   ))}
                   
-                  {/* Load More Button */}
+                  {/* Load More Button for Reviews */}
                   {hasMoreReviews && (
                     <div className="pt-3 text-center">
                       <button
@@ -421,20 +432,20 @@ export default function ProductDetailPage() {
 
         </section>
 
-        {/* Similar Products Section */}
+        {/* Similar Products Section with Pagination */}
         {similarProducts.length > 0 && (
           <section className="mt-16">
             <h2 className="text-3xl font-bold text-rose-800 mb-6">Similar Products</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {similarProducts.slice(0, 3).map((item) => (
+              {visibleSimilarProducts.map((item) => (
                 <Link
                   key={item._id}
                   href={`/productdetail/${item._id}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className="group flex flex-col overflow-hidden rounded-2xl bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl h-full"
                 >
-                  <div className="h-48 w-full bg-rose-50 overflow-hidden">
+                  <div className="h-48 w-full bg-rose-50 overflow-hidden flex-shrink-0">
                     {item.images?.[0] && (
-                      <img src={imageSrc(item.images[0]) || ""} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <img src={imageSrc(item.images[0]) || ""} alt={item.name} className="h-full w-full object-cover " />
                     )}
                   </div>
                   <div className="p-5 flex flex-col flex-1 justify-between">
@@ -447,6 +458,24 @@ export default function ProductDetailPage() {
                 </Link>
               ))}
             </div>
+
+            {/* Load More Button for Similar Products */}
+            {hasMoreSimilarProducts && (
+              <div className="mt-10 text-center">
+                <button
+                  onClick={loadMoreSimilarProducts}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:from-rose-600 hover:to-rose-700 hover:shadow-lg"
+                >
+                  <span>Load More Similar Products</span>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <p className="mt-2 text-xs text-gray-500">
+                  Showing {visibleSimilarProducts.length} of {similarProducts.length} similar products
+                </p>
+              </div>
+            )}
           </section>
         )}
 

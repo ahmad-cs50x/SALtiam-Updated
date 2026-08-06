@@ -4,6 +4,7 @@ import Link from "next/link";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { api } from '@/lib/apiClient';
 
 const SendInquiry = () => {
   const router = useRouter(); // Replace useNavigate with useRouter
@@ -22,11 +23,20 @@ const SendInquiry = () => {
     }
   }, []);
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
     if (!isAuthenticated) {
-      e.preventDefault();
       alert('Please login or register to send an inquiry.');
       router.push('/'); // Replace navigate with router.push
+      return;
+    }
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    try {
+      await api.put('/api/delivery-location', { country: formData.get('country'), postalCode: formData.get('postalCode'), address: formData.get('address') });
+      form.submit();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not save delivery location.');
     }
   };
 
@@ -216,6 +226,14 @@ const SendInquiry = () => {
                     {/* ... rest of options unchanged ... */}
                     <option value="Other">Other</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
+                  <input type="text" name="postalCode" disabled={!isAuthenticated} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100" placeholder="Enter postal code" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Address *</label>
+                  <input type="text" name="address" required disabled={!isAuthenticated} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100" placeholder="Enter delivery address" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Company Name (Optional)</label>

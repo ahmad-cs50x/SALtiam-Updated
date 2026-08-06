@@ -1,10 +1,29 @@
 'use client';
 import Image from 'next/image';
-import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { api } from '../src/lib/apiClient';
 
 const DeliverModal = ({ isOpen, onClose }) => {
+  const { status } = useSession();
+  const [location, setLocation] = useState({ country: '', postalCode: '', address: '' });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (!isOpen || status !== 'authenticated') return;
+    api.get('/api/delivery-location').then(({ data }) => setLocation({ country: data.deliveryLocation?.country || '', postalCode: data.deliveryLocation?.postalCode || '', address: data.deliveryLocation?.address || '' })).catch(() => setMessage('Could not load your saved location.'));
+  }, [isOpen, status]);
+
+  const saveLocation = async () => {
+    if (status !== 'authenticated') { setMessage('Please sign in to save a delivery location.'); return; }
+    setSaving(true);
+    setMessage('');
+    try { await api.put('/api/delivery-location', location); onClose(); }
+    catch (error) { setMessage(error instanceof Error ? error.message : 'Could not save location.'); }
+    finally { setSaving(false); }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -25,23 +44,31 @@ const DeliverModal = ({ isOpen, onClose }) => {
           Enter your address or select a saved location to see availability and delivery options.
         </p>
 
+        {message && <p className="mb-3 text-center text-sm text-red-600">{message}</p>}
         <input
           type="text"
           placeholder="Country"
+          value={location.country}
+          onChange={(event) => setLocation({ ...location, country: event.target.value })}
           className="w-full border border-gray-300 rounded-md text-black px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-rose-500"/>
         <input
           type="text"
           placeholder="Zip / Postal Code"
+          value={location.postalCode}
+          onChange={(event) => setLocation({ ...location, postalCode: event.target.value })}
           className="w-full border border-gray-300 rounded-md text-black px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-rose-500"/>
         <input
           type="text"
           placeholder="Enter address"
+          value={location.address}
+          onChange={(event) => setLocation({ ...location, address: event.target.value })}
           className="w-full border border-gray-300 rounded-md text-black px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-rose-500"/>
 
         <button
-          onClick={onClose}
+          onClick={saveLocation}
+          disabled={saving}
           className="w-full bg-rose-600 text-white py-2 rounded-md hover:bg-rose-700">
-          Done
+          {saving ? 'Saving...' : 'Save location'}
         </button>
       </div>
     </div>
