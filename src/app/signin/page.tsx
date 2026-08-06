@@ -27,7 +27,7 @@ const SignInPage = () => {
         redirect: false,
         email: formData.email,
         password: formData.password,
-        callbackUrl: "/",
+        callbackUrl: formData.email.trim().toLowerCase() === "ranaahmadranaahmad741@gmail.com" ? "/admindashboard" : "/",
       });
 
       if (result?.error) {
@@ -43,7 +43,7 @@ const SignInPage = () => {
       if (result?.ok) {
         toast.success("✅ Sign in successful!");
         setTimeout(() => {
-          router.push("/");
+          router.push(formData.email.trim().toLowerCase() === "ranaahmadranaahmad741@gmail.com" ? "/admindashboard" : "/");
         }, 1000);
         return;
       }
@@ -62,7 +62,7 @@ const SignInPage = () => {
   const handleGoogleSignIn = async () => {
     try {
       toast.info("🔄 Redirecting to Google...");
-      await signIn("google", { callbackUrl: "/" });
+      await signIn("google", { callbackUrl: "/admindashboard" });
     } catch (error) {
       console.error("Google sign in error:", error);
       toast.error("❌ Failed to connect to Google. Please try again.");

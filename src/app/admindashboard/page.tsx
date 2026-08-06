@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { api } from '../../lib/apiClient';
 import { toast } from 'react-toastify';
 import { fetchBlogs, adminLogout, changePassword, forgetPassword, verifyOTP, resetPassword } from '../../services/api';
@@ -42,6 +43,15 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('blogs'); 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
+
+  useEffect(() => {
+    if (status !== 'loading' && role !== 'super') {
+      toast.error('Only super users can access the admin dashboard.');
+      router.replace('/');
+    }
+  }, [role, router, status]);
 
   // Helper function to strip HTML tags from text
   const stripHTML = (html) => {
@@ -118,6 +128,16 @@ const AdminDashboard = () => {
       setUsers(usersData);
     } catch (err) {
       console.error("Failed to load users", err);
+    }
+  };
+
+  const updateUserRole = async (id, role) => {
+    try {
+      await api.put(`/api/users/${id}`, { role });
+      await fetchUsers();
+      toast.success(`User is now a ${role} user.`);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update user role.');
     }
   };
 
@@ -554,6 +574,7 @@ const AdminDashboard = () => {
                     <th className="px-4 py-4 text-left text-xs sm:text-sm font-bold text-pink-900 uppercase tracking-wider">Name</th>
                     <th className="px-4 py-4 text-left text-xs sm:text-sm font-bold text-pink-900 uppercase tracking-wider">Email</th>
                     <th className="px-4 py-4 text-left text-xs sm:text-sm font-bold text-pink-900 uppercase tracking-wider">Joined</th>
+                    <th className="px-4 py-4 text-left text-xs sm:text-sm font-bold text-pink-900 uppercase tracking-wider">Status</th>
                     <th className="px-4 py-4 text-center text-xs sm:text-sm font-bold text-pink-900 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -565,7 +586,19 @@ const AdminDashboard = () => {
                       <td className="px-4 py-5 text-sm text-gray-600">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
+                      <td className="px-4 py-5 text-sm">
+                        <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.role === 'super' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-700'}`}>
+                          {user.role === 'super' ? 'Super user' : 'Normal user'}
+                        </span>
+                      </td>
                       <td className="px-4 py-5 text-center">
+                        <button
+                          onClick={() => updateUserRole(user._id, user.role === 'super' ? 'normal' : 'super')}
+                          disabled={user.email === 'ranaahmadranaahmad741@gmail.com'}
+                          className="mr-2 px-4 py-2 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 transition whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {user.role === 'super' ? 'Make Normal' : 'Make Super'}
+                        </button>
                         <button 
                           onClick={() => handleDeleteUser(user._id)} 
                           className="px-4 py-2 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition whitespace-nowrap"
