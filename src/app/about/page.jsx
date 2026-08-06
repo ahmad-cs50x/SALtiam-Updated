@@ -9,17 +9,17 @@ const AboutUs = () => {
       <div className="max-w-7xl mx-auto">
 
         {/* Main Heading */}
-          <div className="mb-10 text-center sm:mb-12">
-                                          <p className="mb-2 text-sm font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                                        Company foundation
-                                          </p>
-                                          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-rose-800 sm:text-4xl">
+        <div className="mb-10 text-center sm:mb-12">
+          <p className="mb-2 text-sm font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            Company foundation
+          </p>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-rose-800 sm:text-4xl">
             About Saltiam
-                                          </h2>
-                                          <p className="mx-auto mt-3 max-w-xl text-sm text-rose-700/70 sm:text-base">
-                                         Purity from the Heart of the Himalayas                   
-                                          </p>
-                                        </div>
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-rose-700/70 sm:text-base">
+            Purity from the Heart of the Himalayas
+          </p>
+        </div>
         {/* Hero Section - Image + Text */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-20 lg:mb-28">
           {/* Text Content */}
@@ -33,8 +33,9 @@ const AboutUs = () => {
               Himalayan pink salt, sea salt, and specialty salts to <strong>over 50 countries</strong>.
             </p>
             <div className="pt-4 flex justify-center lg:justify-start">
-              <Link href="/catalog" className="group inline-flex items-center gap-3 bg-gradient-to-r from-rose-600 to-pink-700
-                        text-white font-bold text-lg sm:text-xl px-8 py-4 rounded-full shadow-lg hover:shadow-rose-500/30 transform hover:-translate-y-1 transition-all duration-300" >
+              <Link href="/catalog" 
+              className="px-12 bg-gradient-to-r from-rose-700 to-rose-800 text-white font-bold text-lg py-5 rounded-2xl shadow-2xl hover:shadow-rose-700/50 cursor-pointer flex items-center justify-center gap-3 outline-none focus:outline-none"
+             >
                 Explore Products
                 <svg className="w-6 h-6 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -133,7 +134,7 @@ const AboutUs = () => {
             href="https://zcal.co/saltiam-official/30min"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-4 bg-gradient-to-r from-pink-600 to-rose-700 text-white text-xl sm:text-2xl font-bold px-10 py-6 rounded-full shadow-2xl hover:shadow-pink-500/50 transform hover:scale-110 transition-all duration-300"
+           className="w-[75%] sm:w-[25%] sm:mx-auto mx-auto bg-gradient-to-r from-rose-700 to-rose-800 text-white font-bold text-lg py-5 rounded-2xl hover:shadow-2xl justify-center cursor-pointer flex items-center justify-center gap-3 outline-none focus:outline-none"
           >
             Book a Free Consultation
             <svg className="w-8 h-8 group-hover:translate-x-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
