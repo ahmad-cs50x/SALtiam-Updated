@@ -56,7 +56,7 @@ export default function SearchProductPage() {
       <div className="mx-auto max-w-6xl">
         <Link
           href="/catalog"
-          className="inline-flex items-center text-xl font-semibold text-rose-800 hover:text-rose-950"
+          className="inline-flex items-center text-xl font-semibold text-rose-700 hover:text-rose-800"
         >
           ← Back to catalog
         </Link>
@@ -85,24 +85,27 @@ export default function SearchProductPage() {
             No products matched your search.
           </div>
         ) : (
-          <div className="mt-8 h-100 w-full grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {matches.map((product) => {
               const stock = stockBadge(product);
               return (
                 <Link
                   key={product._id}
                   href={`/productdetail/${product._id}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/40 bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/40 bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl h-full"
                 >
-                  <div className="relative h-60 w-full overflow-hidden bg-rose-50">
+                  {/* Fixed height image container with consistent sizing */}
+                  <div className="relative w-full h-55 flex-shrink-0 overflow-hidden bg-rose-50">
                     {imageSrc(product.images?.[0]) ? (
-                      <img
-                        src={imageSrc(product.images?.[0]) || ""}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
+                      <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                        <img
+                          src={imageSrc(product.images?.[0]) || ""}
+                          alt={product.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-rose-300">
+                      <div className="flex h-full w-full items-center justify-center text-sm text-rose-300">
                         No Image Available
                       </div>
                     )}
@@ -115,13 +118,17 @@ export default function SearchProductPage() {
 
                   <div className="flex flex-1 flex-col justify-between p-5">
                     <div>
-                      <h2 className="line-clamp-1 text-2xl font-bold text-rose-700">
+                      {/* Product name - Single line with ellipsis */}
+                      <h2 className="line-clamp-1 text-2xl font-bold text-rose-700 transition-colors group-hover:text-rose-700/95">
                         {product.name}
                       </h2>
+                      
+                      {/* Product description - Two lines with ellipsis */}
                       <p className="mt-1.5 line-clamp-2 text-sm text-gray-600">
                         {product.description}
                       </p>
                     </div>
+                    
                     <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-3">
                       <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 group-hover:underline">
                         View details
