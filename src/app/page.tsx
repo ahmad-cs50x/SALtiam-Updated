@@ -42,7 +42,7 @@ const Home = () => {
         });
       },
       {
-        threshold: 0.3, // Trigger when 30% of the section is visible
+        threshold: 0.3,
         rootMargin: "0px"
       }
     );
@@ -68,10 +68,70 @@ const Home = () => {
     { name: "VEGAN Certified", image: "/certificate 7.png" },
   ];
 
+  // Popular Products with random images from public folder
+  const popularProducts = [
+    {
+      id: 1,
+      name: "Himalayan Pink Salt Fine",
+      description: "Premium fine-grain pink salt, perfect for cooking and seasoning.",
+      image: "/01.webp",
+      price: "From $12.99"
+    },
+    {
+      id: 2,
+      name: "Himalayan Rock Salt Lamp",
+      description: "Natural glow salt lamp that purifies air and creates cozy ambiance.",
+      image: "/02.webp",
+      price: "From $24.99"
+    },
+    {
+      id: 3,
+      name: "Coarse Gourmet Salt",
+      description: "Large crystals ideal for grinders and gourmet presentation.",
+      image: "/03.webp",
+      price: "From $15.50"
+    },
+    {
+      id: 4,
+      name: "Bath & Spa Salt",
+      description: "Mineral-rich bath salt for relaxation and skin wellness.",
+      image: "/04.webp",
+      price: "From $18.00"
+    },
+    {
+      id: 5,
+      name: "Black Salt (Kala Namak)",
+      description: "Distinctive sulfurous flavor, popular in vegan and Indian cuisine.",
+      image: "/05.webp",
+      price: "From $14.99"
+    },
+    {
+      id: 6,
+      name: "Iodized Table Salt",
+      description: "Everyday cooking salt enriched with essential iodine.",
+      image: "/06.webp",
+      price: "From $9.99"
+    },
+    {
+      id: 7,
+      name: "Decorative Salt Candle Holder",
+      description: "Hand-carved salt holder that doubles as elegant home decor.",
+      image: "/07.webp",
+      price: "From $29.99"
+    },
+    {
+      id: 8,
+      name: "Industrial Grade Salt",
+      description: "High-purity salt for industrial and manufacturing applications.",
+      image: "/08.webp",
+      price: "Bulk Pricing"
+    },
+  ];
+
   const [openIndex, setOpenIndex] = useState(null);
 
   const normalizeImageUrl = (img) => {
-    if (!img) return '/placeholder.png'; // fallback placeholder image
+    if (!img) return '/placeholder.png';
     if (img.startsWith('http') || img.startsWith('/uploads/') || img.startsWith('uploads/')) return img;
     return `/uploads/${img}`;
   };
@@ -318,6 +378,80 @@ const Home = () => {
               <p className="text-gray-600 text-lg">No featured products selected yet.</p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ========== POPULAR PRODUCTS SECTION (NEW) ========== */}
+      <section className="bg-gradient-to-b from-rose-300 via-rose-200 to-rose-300 py-16 px-5 sm:px-10 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-pink-700 mb-4">
+              Popular Products
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-700 max-w-2xl mx-auto">
+              Our most loved Himalayan salt products — handpicked favorites from customers worldwide
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {popularProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className="group bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-pink-400/40 transform hover:-translate-y-3 transition-all duration-500 ease-out border border-pink-100"
+                style={{
+                  animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
+                }}
+              >
+                {/* Image */}
+                <div className="relative h-52 sm:h-56 overflow-hidden bg-rose-50">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="absolute top-3 right-3 bg-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                    Popular
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div className="p-5 sm:p-6 flex flex-col h-full">
+                  <h3 className="text-lg sm:text-xl font-bold text-pink-700 mb-2 line-clamp-1 group-hover:text-rose-600 transition-colors">
+                    {product.name}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">
+                    {product.description}
+                  </p>
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className="text-rose-600 font-bold text-base">{product.price}</span>
+                    <Link
+                      href="/catalog"
+                      className="inline-flex items-center gap-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-semibold px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                    >
+                      View
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link
+              href="/catalog"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-rose-600 to-pink-700 text-white font-bold text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-rose-500/40 transform hover:-translate-y-1 transition-all duration-300"
+            >
+              View All Products
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </section>
 
