@@ -27,8 +27,9 @@ export default function ForgetPassword() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to send OTP");
       }
-      toast.success("✅ OTP sent successfully! Please check your email.");
-      setMsg("OTP sent successfully! Redirecting...");
+      setMsg(data.message || "OTP sent successfully!");
+      toast.success(data.message || "OTP sent successfully!");
+      // setMsg("OTP sent successfully! Redirecting...");
       setTimeout(() => {
         router.push(`/verifyotp?email=${encodeURIComponent(email)}`);
       }, 1400);
