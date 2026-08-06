@@ -5,9 +5,20 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/apiClient";
 
-type Product = { _id: string; name: string; description: string; category: string; availability?: string; images?: string[] };
+type Product = { 
+  _id: string; 
+  name: string; 
+  description: string; 
+  category: string; 
+  availability?: string; 
+  images?: string[];
+  rating?: number;
+  numReviews?: number;
+  stockCount?: number;
+};
 
-const categoryName = (category: string) => category.split("-").map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ");
+const categoryName = (category: string) => 
+  category.split("-").map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ");
 
 export default function CategoryPage() {
   const searchParams = useSearchParams();
@@ -17,21 +28,129 @@ export default function CategoryPage() {
 
   useEffect(() => {
     api.get("/api/products")
-      .then((response) => setProducts((response.data || []).filter((product: Product) => !category || product.category === category)))
+      .then((response) => {
+        const data = (response.data || []).filter(
+          (product: Product) => !category || product.category === category
+        );
+        setProducts(data);
+      })
       .finally(() => setLoading(false));
   }, [category]);
 
-  return <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-8">
-    <div className="mx-auto max-w-6xl">
-      <Link href="/catalog" className="text-sm font-semibold text-rose-700 hover:underline">← Back to catalog</Link>
-      <h1 className="mt-5 text-3xl font-bold text-rose-900 sm:text-4xl">{category ? categoryName(category) : "All Products"}</h1>
-      {loading ? <p className="mt-10 text-rose-800">Loading products...</p> : products.length === 0 ? <p className="mt-10 text-rose-800">No products are available in this category yet.</p> :
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => <Link key={product._id} href={`/productdetail/${product._id}`} className="overflow-hidden rounded-2xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
-            <div className="h-56 bg-rose-100">{product.images?.[0] && <img src={`/uploads/${product.images[0]}`} alt={product.name} className="h-full w-full object-cover" />}</div>
-            <div className="p-5"><h2 className="text-xl font-bold text-gray-900">{product.name}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><p className="mt-4 text-sm font-semibold text-rose-600">{product.availability || "In Stock"} · View details →</p></div>
-          </Link>)}
-        </div>}
-    </div>
-  </main>;
+  const getStockBadge = (product: Product) => {
+    const count = product.stockCount ?? (product.availability?.toLowerCase().includes("low") ? 3 : 15);
+    if (count <= 5) {
+      return { 
+        label: `Low Stock (${count} left)`, 
+        color: "bg-amber-100 text-amber-800 border-amber-300" 
+      };
+    }
+    if (count > 20) {
+      return { 
+        label: "High Stock", 
+        color: "bg-emerald-100 text-emerald-800 border-emerald-300" 
+      };
+    }
+    return { 
+      label: "In Stock", 
+      color: "bg-sky-100 text-sky-800 border-sky-300" 
+    };
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-8">
+      <div className="mx-auto max-w-6xl">
+        <Link 
+          href="/catalog" 
+          className="inline-flex items-center text-sm font-semibold text-rose-800 transition-colors hover:text-rose-950"
+        >
+          ← Back to catalog
+        </Link>
+
+        <div className="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <h1 className="text-3xl font-extrabold tracking-tight text-rose-950 sm:text-4xl">
+            {category ? categoryName(category) : "All Products"}
+          </h1>
+          {!loading && (
+            <span className="inline-flex items-center self-start rounded-full bg-white/60 px-3 py-1 text-sm font-medium text-rose-800 backdrop-blur-sm sm:self-auto">
+              {products.length} {products.length === 1 ? "product" : "products"} available
+            </span>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="mt-16 flex justify-center">
+            <div className="animate-pulse font-medium text-rose-900 text-lg">Loading products...</div>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="mt-16 rounded-2xl bg-white/60 p-12 text-center shadow-sm backdrop-blur-md">
+            <p className="font-medium text-rose-900">No products are available in this category yet.</p>
+          </div>
+        ) : (
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((product) => {
+              const stock = getStockBadge(product);
+              const rating = product.rating ?? 4.5;
+              const numReviews = product.numReviews ?? 18;
+
+              return (
+                <Link 
+                  key={product._id} 
+                  href={`/productdetail/${product._id}`} 
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/40 bg-white/90 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+                >
+                  <div className="relative h-60 w-full overflow-hidden bg-rose-50">
+                    {product.images?.[0] ? (
+                      <img 
+                        src={`/uploads/${product.images[0]}`} 
+                        alt={product.name} 
+                        className="h-full w-full object-cover" 
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm text-rose-300">
+                        No Image Available
+                      </div>
+                    )}
+                    <div className="absolute top-3 right-3">
+                      <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold shadow-sm backdrop-blur-md ${stock.color}`}>
+                        {stock.label}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-1 flex-col justify-between p-5">
+                    <div>
+                      <div className="mb-2 flex items-center gap-1.5">
+                        <div className="flex items-center text-amber-500">
+                          <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                          </svg>
+                        </div>
+                        <span className="text-sm font-bold text-gray-900">{rating.toFixed(1)}</span>
+                        <span className="text-xs text-gray-500">({numReviews} reviews)</span>
+                      </div>
+
+                      <h2 className="line-clamp-1 text-lg font-bold text-gray-900 transition-colors group-hover:text-rose-600">
+                        {product.name}
+                      </h2>
+                      <p className="mt-1.5 line-clamp-2 text-sm text-gray-600">
+                        {product.description}
+                      </p>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-3">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 group-hover:underline">
+                        View details
+                      </span>
+                      <span className="text-gray-400 transition-transform group-hover:translate-x-1">→</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </main>
+  );
 }

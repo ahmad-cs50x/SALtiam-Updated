@@ -47,7 +47,7 @@ const Footer = () => {
           <h3 className="text-white text-lg font-semibold mb-4">Customer Service</h3>
           <ul className="space-y-2 text-sm">
             <li><Link href="/bloglist" className="hover:text-pink-300 hover:underline">Blogs</Link></li>
-            <li><Link href="/sitemap.xml" className="hover:text-pink-300 hover:underline">Site Map</Link></li>
+            <li><Link href="/sitemap" className="hover:text-pink-300 hover:underline">Site Map</Link></li>
             <li><Link href="/about" className="hover:text-pink-300 hover:underline">About Us</Link></li>
             <li><Link href="/contactus" className="hover:text-pink-300 hover:underline">Contact Us</Link></li>
             <li><Link href="/privacypolicy" className="hover:text-pink-300 hover:underline">Privacy Policy</Link></li>
