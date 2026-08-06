@@ -60,7 +60,7 @@ const ChangePassword = () => {
         throw new Error(data.error || "Failed to change password.");
       }
 
-      toast.success("✅ Password changed successfully. Redirecting to sign in...");
+      toast.success("✅ Password changed successfully");
       sessionStorage.removeItem("passwordResetEmail");
       setTimeout(() => {
         router.push("/signin");

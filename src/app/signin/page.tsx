@@ -41,7 +41,7 @@ const SignInPage = () => {
       }
 
       if (result?.ok) {
-        toast.success("✅ Sign in successful! Welcome back!");
+        toast.success("✅ Sign in successful!");
         setTimeout(() => {
           router.push("/");
         }, 1000);

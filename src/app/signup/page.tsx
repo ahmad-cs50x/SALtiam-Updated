@@ -108,7 +108,7 @@ const SignUpPage = () => {
         throw new Error(data.error || "Registration failed");
       }
 
-      toast.success("✅ Registration successful! Please sign in.");
+      toast.success("✅ Registration successful!");
       setTimeout(() => {
         router.push('/signin');
       }, 1300);

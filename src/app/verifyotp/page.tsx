@@ -49,7 +49,7 @@ const VerifyOTP = () => {
         throw new Error(data.error || "OTP verification failed.");
       }
 
-      toast.success("✅ OTP correct. Set your new password now.");
+      toast.success("✅ OTP correct");
       sessionStorage.setItem("passwordResetEmail", email);
       router.push(`/changepassword?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
@@ -92,7 +92,7 @@ const VerifyOTP = () => {
             placeholder="Enter OTP"
             maxLength={6}
             required
-            className="w-full text-center text-2xl tracking-widest px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+            className="w-full text-black text-center text-2xl tracking-widest px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
           />
           <button
             type="submit"

@@ -5,6 +5,8 @@ import GoogleProvider from "next-auth/providers/google";
 import { dbConnect } from "../../../../lib/db";
 import User from "../../../../models/User";
 
+const SUPER_USER_EMAIL = "ranaahmadranaahmad741@gmail.com";
+
 const authOptions = {
   providers: [
     GoogleProvider({
@@ -38,6 +40,7 @@ const authOptions = {
           id: user._id.toString(),
           email: user.email,
           name: user.name || user.email.split("@")[0],
+          role: user.email === SUPER_USER_EMAIL ? "super" : user.role || "normal",
         };
       },
     }),
@@ -53,6 +56,7 @@ const authOptions = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.role = user.email === SUPER_USER_EMAIL ? "super" : (user as { role?: string }).role || "normal";
       }
       return token;
     },
@@ -60,6 +64,7 @@ const authOptions = {
       if (token) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
+        (session.user as { role?: string }).role = token.role as string;
       }
       return session;
     },
