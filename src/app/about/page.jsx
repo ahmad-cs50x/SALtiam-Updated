@@ -9,15 +9,17 @@ const AboutUs = () => {
       <div className="max-w-7xl mx-auto">
 
         {/* Main Heading */}
-        <div className="text-center mb-16 lg:mb-20">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-800 to-rose-700 leading-tight">
+          <div className="mb-10 text-center sm:mb-12">
+                                          <p className="mb-2 text-sm font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                                        Company foundation
+                                          </p>
+                                          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-rose-800 sm:text-4xl">
             About Saltiam
-          </h1>
-          <p className="mt-4 text-xl sm:text-2xl text-pink-900 font-medium">
-            Purity from the Heart of the Himalayas
-          </p>
-        </div>
-
+                                          </h2>
+                                          <p className="mx-auto mt-3 max-w-xl text-sm text-rose-700/70 sm:text-base">
+                                         Purity from the Heart of the Himalayas                   
+                                          </p>
+                                        </div>
         {/* Hero Section - Image + Text */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-20 lg:mb-28">
           {/* Text Content */}
@@ -91,7 +93,7 @@ const AboutUs = () => {
               key={index}
               className="group bg-gradient-to-r from-pink-100/80 to-rose-100/80 backdrop-blur-sm rounded-3xl p-8 lg:p-10 shadow-xl hover:shadow-2xl transition-all duration-500 border border-pink-100 hover:border-pink-300 transform hover:-translate-y-3"
             >
-              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl mb-6 flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-rose-600/80 to-pink-800 rounded-2xl mb-6 flex items-center justify-center">
                 {value.icon}
               </div>
               <h3 className="text-2xl font-bold text-pink-800 mb-4 group-hover:text-pink-900 transition">
