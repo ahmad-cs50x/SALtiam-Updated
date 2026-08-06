@@ -68,7 +68,7 @@ export default function CategoryPage() {
         </Link>
 
         <div className="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-3xl font-extrabold tracking-tight text-rose-950 sm:text-4xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-rose-800 sm:text-4xl">
             {category ? categoryName(category) : "All Products"}
           </h1>
           {!loading && (

@@ -538,7 +538,7 @@ const AdminDashboard = () => {
                   {reviews.map(review => (
                     <tr key={review._id} className="bg-rose-50 hover:bg-rose-100 transition">
                       <td className="px-4 py-5 text-sm text-gray-800 font-medium">{getProductName(review.productId)}</td>
-                      <td className="px-4 py-5 text-sm text-gray-800">{review.user}</td>
+                      <td className="px-4 py-5 text-sm text-gray-800">{review.userName}</td>
                       <td className="px-4 py-5 text-sm text-yellow-600 font-bold">{review.rating} ★</td>
                       <td className="px-4 py-5 text-sm text-gray-600 truncate max-w-xs">{review.comment}</td>
                       <td className="px-4 py-5 text-center">

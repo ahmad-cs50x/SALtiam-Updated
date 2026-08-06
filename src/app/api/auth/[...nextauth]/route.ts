@@ -62,8 +62,7 @@ const authOptions = {
         const email = user.email.toLowerCase();
         const existingUser = await User.findOne({ email });
 
-        if (!existingUser) {
-          await User.create({
+        const databaseUser = existingUser || await User.create({
             name: user.name || email.split("@")[0],
             email,
             // Google-authenticated users do not use credentials login. Store a
@@ -71,7 +70,7 @@ const authOptions = {
             password: await bcrypt.hash(`${crypto.randomUUID()}-${Date.now()}`, 10),
             role: email === SUPER_USER_EMAIL ? "super" : "normal",
           });
-        }
+        user.id = databaseUser._id.toString();
 
         return true;
       } catch (error) {
@@ -99,6 +98,7 @@ const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-const { handlers } = NextAuth(authOptions);
+const { handlers, auth } = NextAuth(authOptions);
 
 export const { GET, POST } = handlers;
+export { auth };

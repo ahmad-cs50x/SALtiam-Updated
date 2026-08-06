@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { api } from "@/lib/apiClient";
 
 type Review = {
-  id: string;
-  name: string;
+  _id: string;
+  userName: string;
   rating: number;
   comment: string;
-  date: string;
+  createdAt: string;
 };
 
 type Product = {
@@ -23,11 +24,11 @@ type Product = {
   rating?: number;
   numReviews?: number;
   stockCount?: number;
-  reviews?: Review[];
 };
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
+  const { data: session, status } = useSession();
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [error, setError] = useState("");
@@ -39,10 +40,14 @@ export default function ProductDetailPage() {
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   // New review form state
-  const [reviewerName, setReviewerName] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [userReviews, setUserReviews] = useState<Review[]>([]);
+  const [reviewError, setReviewError] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  
+  // Hover star state
+  const [hoveredRating, setHoveredRating] = useState(0);
 
   useEffect(() => {
     if (!params?.id) return;
@@ -50,9 +55,7 @@ export default function ProductDetailPage() {
       .then((response) => {
         const prod = response.data;
         setProduct(prod);
-        if (prod?.reviews) {
-          setUserReviews(prod.reviews);
-        }
+        api.get(`/api/reviews?productId=${prod._id}`).then((reviewsResponse) => setUserReviews(reviewsResponse.data || [])).catch(() => setUserReviews([]));
         // Fetch similar products based on category
         if (prod?.category) {
           api.get("/api/products")
@@ -74,22 +77,23 @@ export default function ProductDetailPage() {
     setCursorPosition({ x, y });
   };
 
-  const handleAddReview = (e: React.FormEvent) => {
+  const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reviewerName.trim() || !reviewComment.trim()) return;
-
-    const newRev: Review = {
-      id: Date.now().toString(),
-      name: reviewerName,
-      rating: reviewRating,
-      comment: reviewComment,
-      date: new Date().toLocaleDateString(),
-    };
-
-    setUserReviews([newRev, ...userReviews]);
-    setReviewerName("");
-    setReviewComment("");
-    setReviewRating(5);
+    if (status !== "authenticated") { setReviewError("Please sign in to add a review."); return; }
+    if (!reviewComment.trim()) return;
+    setSubmittingReview(true);
+    setReviewError("");
+    try {
+      const response = await api.post("/api/reviews", { productId: product?._id, rating: reviewRating, comment: reviewComment });
+      setUserReviews((reviews) => [response.data, ...reviews]);
+      setReviewComment("");
+      setReviewRating(5);
+      setHoveredRating(0);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Could not save your review.";
+      setReviewError(message);
+    }
+    finally { setSubmittingReview(false); }
   };
 
   if (error) {
@@ -106,15 +110,14 @@ export default function ProductDetailPage() {
   }
 
   const images = product.images && product.images.length > 0 ? product.images : [];
-  const currentImage = images[selectedImageIndex] ? `/uploads/${images[selectedImageIndex]}` : null;
+  const imageSrc = (image?: string) => image && (image.startsWith("http") || image.startsWith("data:") || image.startsWith("/")) ? image : image ? `/uploads/${image}` : null;
+  const currentImage = imageSrc(images[selectedImageIndex]);
 
-  const stockCount = product.stockCount ?? (product.availability?.toLowerCase().includes("low") ? 4 : 18);
-  const stockBadge = stockCount <= 5
-    ? { label: `Low Stock (${stockCount} left)`, color: "bg-amber-100 text-amber-800 border-amber-300" }
-    : { label: "In Stock", color: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+  const stockStatus = product.availability || "In Stock";
+  const stockStatusColor = stockStatus.toLowerCase().includes("low") ? "bg-amber-100 text-amber-800 border-amber-300" : stockStatus.toLowerCase().includes("out") ? "bg-red-100 text-red-800 border-red-300" : "bg-emerald-100 text-emerald-800 border-emerald-300";
 
-  const totalReviews = (product.numReviews || 12) + userReviews.length;
-  const avgRating = product.rating || 4.6;
+  const totalReviews = userReviews.length;
+  const avgRating = totalReviews ? userReviews.reduce((total, review) => total + review.rating, 0) / totalReviews : 0;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#ffd3b6] via-rose-100 to-rose-300 px-4 py-12 sm:px-8">
@@ -138,12 +141,12 @@ export default function ProductDetailPage() {
                     className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all ${selectedImageIndex === idx ? "border-rose-600 ring-2 ring-rose-300" : "border-gray-200 hover:border-gray-400"
                       }`}
                   >
-                    <img src={`/uploads/${img}`} alt={`${product.name} ${idx}`} className="h-full w-full object-cover" />
+                    <img src={imageSrc(img) || ""} alt={`${product.name} ${idx + 1}`} className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>
 
-              {/* Large Image Box with Amazon Zoom Effect */}
+              {/* Large Image Box with Amazon Zoom Effect - Image now completely fills container */}
               <div className="relative flex-1">
                 <div
                   ref={imageContainerRef}
@@ -153,7 +156,7 @@ export default function ProductDetailPage() {
                   className="relative h-[420px] w-full cursor-crosshair overflow-hidden rounded-2xl bg-rose-50 border border-gray-100 shadow-inner"
                 >
                   {currentImage ? (
-                    <img src={currentImage} alt={product.name} className="h-full w-full object-contain p-4" />
+                    <img src={currentImage} alt={product.name} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-rose-300">No Image Available</div>
                   )}
@@ -195,8 +198,8 @@ export default function ProductDetailPage() {
                   <span className="text-xs font-bold uppercase tracking-widest text-rose-600">
                     {product.category?.replaceAll("-", " ")}
                   </span>
-                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold shadow-sm ${stockBadge.color}`}>
-                    {stockBadge.label}
+                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold shadow-sm ${stockStatusColor}`}>
+                    {stockStatus}
                   </span>
                 </div>
 
@@ -229,8 +232,8 @@ export default function ProductDetailPage() {
 
               <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-3">
                 <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>Stock Status: <strong className="text-gray-800">{stockCount} units available</strong></span>
-                  <span>Category: <strong className="text-gray-800">{product.category}</strong></span>
+                  <span>Status: <strong className="text-rose-800">{stockStatus}</strong></span>
+                  <span>Category: <strong className="text-rose-700">{product.category}</strong></span>
                 </div>
                 <Link
                   href="/sendaninquiry"
@@ -250,17 +253,17 @@ export default function ProductDetailPage() {
 
           {/* Customer Reviews List */}
           <div className="lg:col-span-7 bg-white/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews ({totalReviews})</h2>
+            <h2 className="text-2xl font-bold text-rose-800 mb-6">Customer Reviews ({totalReviews})</h2>
 
             <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
               {userReviews.length === 0 ? (
                 <p className="text-sm text-gray-500 italic">No reviews yet. Be the first to add one!</p>
               ) : (
                 userReviews.map((rev) => (
-                  <div key={rev.id} className="border-b border-gray-100 pb-4 last:border-0">
+                  <div key={rev._id} className="border-b border-gray-100 pb-4 last:border-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-gray-900">{rev.name}</h4>
-                      <span className="text-xs text-gray-400">{rev.date}</span>
+                      <h4 className="font-bold text-gray-900">{rev.userName}</h4>
+                      <span className="text-xs text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-1 my-1 text-amber-500">
                       {[...Array(5)].map((_, i) => (
@@ -276,35 +279,53 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Add Review Form */}
+          {/* Add Review Form - With Hover Star Selection */}
           <div className="lg:col-span-5 bg-white/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Add a Review</h2>
+            <h2 className="text-xl font-bold text-rose-800 mb-4">Add a Review</h2>
+            {status !== "authenticated" && <p className="mb-4 text-sm text-rose-700">Please <Link href="/signin" className="font-semibold underline">sign in</Link> to add a review.</p>}
+            {reviewError && <p className="mb-4 text-sm text-red-600">{reviewError}</p>}
             <form onSubmit={handleAddReview} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Your Name</label>
                 <input
                   type="text"
-                  required
-                  value={reviewerName}
-                  onChange={(e) => setReviewerName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="w-full rounded-xl text-black border border-gray-200 px-4 py-2.5 text-sm focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
+                  value={session?.user?.name || ""}
+                  readOnly
+                  disabled={status !== "authenticated"}
+                  placeholder="Your name will appear after sign in"
+                  className="w-full rounded-xl text-black border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm"
                 />
               </div>
 
+              {/* Hover Star Rating Selection - Larger, more yellow with yellow shadow */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Rating</label>
-                <select
-                  value={reviewRating}
-                  onChange={(e) => setReviewRating(Number(e.target.value))}
-                  className="w-full text-black rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
-                >
-                  <option value={5}>5 Stars - Excellent</option>
-                  <option value={4}>4 Stars - Very Good</option>
-                  <option value={3}>3 Stars - Average</option>
-                  <option value={2}>2 Stars - Poor</option>
-                  <option value={1}>1 Star - Terrible</option>
-                </select>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">Rating</label>
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onMouseEnter={() => setHoveredRating(star)}
+                      onMouseLeave={() => setHoveredRating(0)}
+                      onClick={() => setReviewRating(star)}
+                      className="transition-transform hover:scale-110 focus:outline-none"
+                    >
+                      <svg 
+                        className={`h-8 w-8 transition-all ${
+                          star <= (hoveredRating || reviewRating) 
+                            ? "fill-yellow-400 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" 
+                            : "fill-gray-300 text-gray-300"
+                        }`}
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                      </svg>
+                    </button>
+                  ))}
+                  <span className="ml-2 text-sm font-medium text-gray-600">
+                    {reviewRating} {reviewRating === 1 ? "Star" : "Stars"}
+                  </span>
+                </div>
               </div>
 
               <div>
@@ -321,9 +342,10 @@ export default function ProductDetailPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-xl bg-rose-600 px-5 py-3 font-semibold text-white shadow-md transition-all hover:bg-rose-700"
+                disabled={status !== "authenticated" || submittingReview}
+                className="w-full rounded-xl bg-gradient-to-r from-rose-600 to-rose-800 px-5 py-3 font-semibold text-white shadow-md transition-all hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Submit Review
+                {submittingReview ? "Saving..." : "Submit Review"}
               </button>
             </form>
           </div>
@@ -333,7 +355,7 @@ export default function ProductDetailPage() {
         {/* Similar Products Section */}
         {similarProducts.length > 0 && (
           <section className="mt-16">
-            <h2 className="text-2xl font-bold text-rose-950 mb-6">Similar Products in {product.category.replaceAll("-", " ")}</h2>
+            <h2 className="text-3xl font-bold text-rose-800 mb-6">Similar Products</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {similarProducts.slice(0, 3).map((item) => (
                 <Link
