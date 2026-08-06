@@ -4,6 +4,7 @@ import Link from "next/link";
 import React, { useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/apiClient';
+import { toast } from "react-toastify";
 
 import { 
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, 
@@ -107,7 +108,7 @@ const UploadBlog = () => {
 
     try {
       await api.post('/api/blogs', formData);
-      alert('Blog uploaded successfully!');
+      toast.success('Blog uploaded to the database successfully!');
       router.push('/admindashboard');
     } catch (err) {
       alert('Upload failed — check server');

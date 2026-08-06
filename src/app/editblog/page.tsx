@@ -4,6 +4,7 @@ import Link from "next/link";
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '../../lib/apiClient';
+import { toast } from "react-toastify";
 import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Link2, Image as ImageIcon, Table, Minus, Plus } from 'lucide-react';
 
 const EditBlog = () => {
@@ -138,7 +139,7 @@ const EditBlog = () => {
     }
     try {
       await api.put(`/api/blogs/${id}`, formData);
-      alert('Blog updated successfully!');
+      toast.success('Blog updated in the database successfully!');
       router.push('/admindashboard');
     } catch (err) {
       alert('Update failed — check server');
