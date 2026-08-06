@@ -252,7 +252,7 @@ const EditBlog = () => {
                       {typeof bannerImage === 'string' ? 'Current Banner:' : 'New Banner:'}
                     </p>
                     <img
-                      src={typeof bannerImage === 'string' ? `/uploads/${bannerImage}` : URL.createObjectURL(bannerImage)}
+                      src={typeof bannerImage === 'string' ? (bannerImage.startsWith('data:') || bannerImage.startsWith('/') ? bannerImage : `/uploads/${bannerImage}`) : URL.createObjectURL(bannerImage)}
                       alt="Banner preview"
                       className="mx-auto max-w-full h-48 object-cover rounded-lg"
                     />

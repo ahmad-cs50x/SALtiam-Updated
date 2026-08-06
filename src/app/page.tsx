@@ -74,7 +74,7 @@ const Home = () => {
 
   const normalizeImageUrl = (img) => {
     if (!img) return '/placeholder.png';
-    if (img.startsWith('http') || img.startsWith('/uploads/') || img.startsWith('uploads/')) return img;
+    if (img.startsWith('http') || img.startsWith('data:') || img.startsWith('/uploads/') || img.startsWith('uploads/')) return img;
     return `/uploads/${img}`;
   };
 

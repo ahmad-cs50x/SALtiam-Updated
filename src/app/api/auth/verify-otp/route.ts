@@ -16,7 +16,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "OTP incorrect or expired." }, { status: 400 });
     }
 
-    otpStore.delete(email);
     return NextResponse.json({ message: "OTP verified." });
   } catch (error) {
     console.error("verify-otp error", error);

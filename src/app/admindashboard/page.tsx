@@ -51,7 +51,7 @@ const AdminDashboard = () => {
 
   const getProductImageSrc = (img) => {
     if (!img) return null;
-    if (img.startsWith('http') || img.startsWith('/uploads/') || img.startsWith('uploads/')) return img;
+    if (img.startsWith('http') || img.startsWith('data:') || img.startsWith('/uploads/') || img.startsWith('uploads/')) return img;
     return `/uploads/${img}`;
   };
 
@@ -447,7 +447,7 @@ const AdminDashboard = () => {
                     <tr key={product._id} className="bg-rose-50 hover:bg-rose-100 transition">
                       <td className="px-4 py-4">
                         {product.images && product.images.length > 0 ? (
-                          <img src={getProductImageSrc(product.images[0])} alt={product.name} className="w-12 h-12 object-cover rounded-lg border border-pink-200" />
+                          <img src={getProductImageSrc(product.images?.[0]) || "/placeholder-product.jpg"} alt={product.name || "Product"} className="w-12 h-12 object-cover rounded-lg border border-pink-200" />
                         ) : (
                           <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-xs">No Img</div>
                         )}
@@ -612,7 +612,7 @@ const AdminDashboard = () => {
                     <tr key={product._id} className="bg-rose-50 hover:bg-rose-100 transition">
                       <td className="px-4 py-4">
                         {product.images && product.images.length > 0 ? (
-                          <img src={getProductImageSrc(product.images[0])} alt={product.name} className="w-12 h-12 object-cover rounded-lg border border-pink-200" />
+                          <img src={getProductImageSrc(product.images?.[0]) || "/placeholder-product.jpg"} alt={product.name || "Product"} className="w-12 h-12 object-cover rounded-lg border border-pink-200" />
                         ) : (
                           <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-xs">No Img</div>
                         )}

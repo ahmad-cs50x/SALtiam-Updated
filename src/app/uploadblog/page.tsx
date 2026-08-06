@@ -142,7 +142,7 @@ const UploadBlog = () => {
           {/* Media */}
           <div className="w-px h-8 bg-white/30 mx-1" />
           <input ref={imgInputRef} type="file" accept="image/*" onChange={insertImage} className="hidden" />
-          <button onClick={() => imgInputRef.current?.click()} className="p-2.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white"><Image size={20} /></button>
+          <button onClick={() => imgInputRef.current?.click()} className="p-2.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white"><ImageIcon size={20} /></button>
           <button onClick={insertTable} className="p-2.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white"><Table size={20} /></button>
 
           {/* Font Size */}
