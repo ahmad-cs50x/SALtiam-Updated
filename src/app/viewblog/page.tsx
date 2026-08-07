@@ -48,7 +48,7 @@ const ViewBlog = () => {
         <div className="text-center bg-white rounded-2xl p-8 shadow-lg max-w-lg">
           <p className="text-2xl font-bold text-pink-800 mb-3">Blog could not be loaded</p>
           <p className="text-gray-600 mb-6">{error || 'This blog post is unavailable right now.'}</p>
-          <Link href="/admindashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-rose-600 text-white rounded-xl font-semibold hover:bg-rose-700 transition">
+          <Link href="/secretpanel" className="inline-flex items-center gap-2 px-6 py-3 bg-rose-600 text-white rounded-xl font-semibold hover:bg-rose-700 transition">
             Back to dashboard
           </Link>
         </div>
@@ -135,7 +135,7 @@ const ViewBlog = () => {
           {/* Back Button */}
           <div className="px-5 pb-10 sm:px-8 lg:px-12 flex justify-center sm:justify-end">
             <Link
-              href="/admindashboard"
+              href="/secretpanel"
               className="inline-flex items-center gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-rose-600 text-white font-bold text-sm sm:text-base rounded-xl shadow-lg hover:bg-rose-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

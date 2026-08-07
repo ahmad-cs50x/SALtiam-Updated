@@ -109,7 +109,7 @@ const UploadBlog = () => {
     try {
       await api.post('/api/blogs', formData);
       toast.success('Blog uploaded to the database successfully!');
-      router.push('/admindashboard');
+      router.push('/secretpanel');
     } catch (err) {
       alert('Upload failed — check server');
       console.error(err);

@@ -27,7 +27,7 @@ const SignInPage = () => {
         redirect: false,
         email: formData.email,
         password: formData.password,
-        callbackUrl: formData.email.trim().toLowerCase() === "ranaahmadranaahmad741@gmail.com" ? "/admindashboard" : "/",
+        callbackUrl: formData.email.trim().toLowerCase() === "ranaahmadranaahmad741@gmail.com" ? "/secretpanel" : "/",
       });
 
       if (result?.error) {
@@ -43,7 +43,7 @@ const SignInPage = () => {
       if (result?.ok) {
         toast.success("✅ Sign in successful!");
         setTimeout(() => {
-          router.push(formData.email.trim().toLowerCase() === "ranaahmadranaahmad741@gmail.com" ? "/admindashboard" : "/");
+          router.push(formData.email.trim().toLowerCase() === "ranaahmadranaahmad741@gmail.com" ? "/secretpanel" : "/");
         }, 1000);
         return;
       }
