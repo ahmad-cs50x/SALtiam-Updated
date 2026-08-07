@@ -37,9 +37,9 @@ const Header = () => {
       setIsLoggedIn(true);
       setUserName(name || 'User');
     }
-    // Auto‑redirect super user to admin dashboard
-    if (status === 'authenticated' && session?.user?.email === SUPER_USER_EMAIL && !hasRedirected && pathname !== '/admindashboard') {
-      router.push('/admindashboard');
+    // Auto‑redirect super user to the secret panel.
+    if (status === 'authenticated' && session?.user?.email === SUPER_USER_EMAIL && !hasRedirected && pathname !== '/secretpanel') {
+      router.push('/secretpanel');
       setHasRedirected(true);
     }
   }, [status, session, pathname, hasRedirected]);

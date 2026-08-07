@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { toast as notify } from "react-toastify";
 import { api } from "@/lib/apiClient";
 
 type Review = {
@@ -113,6 +114,7 @@ export default function ProductDetailPage() {
       setReviewComment("");
       setReviewRating(5);
       setHoveredRating(0);
+      notify.success("Review submitted successfully!");
       
       // Show success toast
       setToast({ message: "✅ Review submitted successfully!", type: 'success' });
@@ -120,6 +122,7 @@ export default function ProductDetailPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Could not save your review.";
       setReviewError(message);
+      notify.error(message);
       setToast({ message: `❌ ${message}`, type: 'error' });
       setTimeout(() => setToast(null), 4000);
     }
@@ -173,17 +176,6 @@ export default function ProductDetailPage() {
         <Link href="/catalog" className="inline-flex items-center text-xl font-semibold text-rose-800 transition-colors hover:text-rose-950">
           ← Back to catalog
         </Link>
-
-        {/* Toast Notification */}
-        {toast && (
-          <div className={`fixed top-6 right-6 z-50 max-w-md animate-slide-in rounded-2xl px-6 py-4 shadow-2xl backdrop-blur-md transition-all duration-1000 ${
-            toast.type === 'success' 
-              ? 'bg-emerald-50/95 border border-emerald-200 text-emerald-800' 
-              : 'bg-red-50/95 border border-red-200 text-red-800'
-          }`}>
-            <p className="text-sm font-medium">{toast.message}</p>
-          </div>
-        )}
 
         {/* Main Product Container */}
         <article className="mt-6 overflow-visible rounded-3xl bg-white p-6 sm:p-10 shadow-xl">
