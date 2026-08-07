@@ -8,6 +8,7 @@ import { IoSearchOutline } from "react-icons/io5";
 import { HiOutlineMenu } from "react-icons/hi";
 import { toast } from 'react-toastify';
 import DeliverModal from "./DeliverModal.jsx";
+import { api } from '../src/lib/apiClient';
 
 const Header = () => {
   const router = useRouter();
@@ -20,6 +21,7 @@ const Header = () => {
   const { data: session, status } = useSession();
   const [hasShownSignInToast, setHasShownSignInToast] = useState(false);
   const [hasRedirected, setHasRedirected] = useState(false);
+  const [deliveryLocation, setDeliveryLocation] = useState(null);
   const SUPER_USER_EMAIL = 'ranaahmadranaahmad741@gmail.com';
   const pathname = usePathname();
 
@@ -49,6 +51,31 @@ const Header = () => {
       setHasShownSignInToast(true);
     }
   }, [status, hasShownSignInToast]);
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      setDeliveryLocation(null);
+      return;
+    }
+
+    const loadDeliveryLocation = async () => {
+      try {
+        const { data } = await api.get('/api/delivery-location');
+        setDeliveryLocation(data.deliveryLocation || null);
+      } catch {
+        setDeliveryLocation(null);
+      }
+    };
+
+    const handleLocationUpdated = (event) => setDeliveryLocation(event.detail || null);
+    loadDeliveryLocation();
+    window.addEventListener('delivery-location-updated', handleLocationUpdated);
+    return () => window.removeEventListener('delivery-location-updated', handleLocationUpdated);
+  }, [status]);
+
+  const deliverySummary = deliveryLocation?.address
+    ? `${deliveryLocation.address}${deliveryLocation.postalCode ? `, ${deliveryLocation.postalCode}` : ''}`
+    : deliveryLocation?.country || deliveryLocation?.postalCode || 'Choose location';
 
   const closeAll = () => {
     setIsDeliverOpen(false);
@@ -161,7 +188,7 @@ const Header = () => {
             <img src="https://i.imghippo.com/files/FuW4002bEk.png" className="w-6 h-6 object-contain" alt="Location" />
             <div className="text-left leading-tight ml-2">
               <p className="text-white text-xs">Deliver to:</p>
-              <p className="text-white font-bold text-sm">Choose location</p>
+              <p className="text-white font-bold text-sm max-w-28 truncate" title={deliveryLocation?.address || deliverySummary}>{deliverySummary}</p>
             </div>
           </div>
 
@@ -189,7 +216,7 @@ const Header = () => {
         <div className="md:hidden flex flex-col bg-rose-300 text-gray-900 px-6 py-4 space-y-4 text-lg font-medium">
 
           <div onClick={() => { setIsDeliverOpen(true); setIsMobileMenuOpen(false); }} className="hover:text-rose-700">
-            Deliver to: Choose location
+            Deliver to: {deliverySummary}
           </div>
           <Link href="/catalog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-rose-700">Catalog</Link>
 
@@ -212,7 +239,12 @@ const Header = () => {
       )}
 
       {/* Modals */}
-      <DeliverModal isOpen={isDeliverOpen} onClose={closeAll} />
+      <DeliverModal
+        isOpen={isDeliverOpen}
+        onClose={closeAll}
+        onLocationSaved={setDeliveryLocation}
+        savedLocation={deliveryLocation}
+      />
     </header>
   );
 };

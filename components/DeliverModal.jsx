@@ -2,9 +2,10 @@
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
 import { api } from '../src/lib/apiClient';
 
-const DeliverModal = ({ isOpen, onClose }) => {
+const DeliverModal = ({ isOpen, onClose, onLocationSaved, savedLocation }) => {
   const { status } = useSession();
   const [location, setLocation] = useState({ country: '', postalCode: '', address: '' });
   const [saving, setSaving] = useState(false);
@@ -12,14 +13,37 @@ const DeliverModal = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (!isOpen || status !== 'authenticated') return;
-    api.get('/api/delivery-location').then(({ data }) => setLocation({ country: data.deliveryLocation?.country || '', postalCode: data.deliveryLocation?.postalCode || '', address: data.deliveryLocation?.address || '' })).catch(() => setMessage('Could not load your saved location.'));
-  }, [isOpen, status]);
+
+    // Populate immediately from Header, then refresh from the database.
+    if (savedLocation) {
+      setLocation({
+        country: savedLocation.country || '',
+        postalCode: savedLocation.postalCode || '',
+        address: savedLocation.address || '',
+      });
+    }
+
+    api.get('/api/delivery-location')
+      .then(({ data }) => setLocation({
+        country: data.deliveryLocation?.country || '',
+        postalCode: data.deliveryLocation?.postalCode || '',
+        address: data.deliveryLocation?.address || '',
+      }))
+      .catch(() => setMessage('Could not load your saved location.'));
+  }, [isOpen, status, savedLocation]);
 
   const saveLocation = async () => {
     if (status !== 'authenticated') { setMessage('Please sign in to save a delivery location.'); return; }
     setSaving(true);
     setMessage('');
-    try { await api.put('/api/delivery-location', location); onClose(); }
+    try {
+      const { data } = await api.put('/api/delivery-location', location);
+      setLocation(data.deliveryLocation);
+      onLocationSaved?.(data.deliveryLocation);
+      window.dispatchEvent(new CustomEvent('delivery-location-updated', { detail: data.deliveryLocation }));
+      toast.success('Delivery location saved successfully!');
+      onClose();
+    }
     catch (error) { setMessage(error instanceof Error ? error.message : 'Could not save location.'); }
     finally { setSaving(false); }
   };

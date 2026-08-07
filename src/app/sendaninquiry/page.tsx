@@ -5,12 +5,15 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { api } from '@/lib/apiClient';
+import { toast } from 'react-toastify';
 
 const SendInquiry = () => {
   const router = useRouter(); // Replace useNavigate with useRouter
   const { data: session, status } = useSession();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [inquiryName, setInquiryName] = useState('');
+  const [deliveryLocation, setDeliveryLocation] = useState({ country: '', postalCode: '', address: '' });
   const isAuthenticated = isLoggedIn || status === 'authenticated';
   const displayName = session?.user?.name || userName;
 
@@ -23,6 +26,25 @@ const SendInquiry = () => {
     }
   }, []);
 
+  useEffect(() => {
+    setInquiryName(displayName || '');
+  }, [displayName]);
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      setDeliveryLocation({ country: '', postalCode: '', address: '' });
+      return;
+    }
+
+    api.get('/api/delivery-location')
+      .then(({ data }) => setDeliveryLocation({
+        country: data.deliveryLocation?.country || '',
+        postalCode: data.deliveryLocation?.postalCode || '',
+        address: data.deliveryLocation?.address || '',
+      }))
+      .catch(() => toast.error('Could not load sent your inquiry.'));
+  }, [status]);
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -33,7 +55,9 @@ const SendInquiry = () => {
     const form = e.currentTarget;
     const formData = new FormData(form);
     try {
-      await api.put('/api/delivery-location', { country: formData.get('country'), postalCode: formData.get('postalCode'), address: formData.get('address') });
+      const { data } = await api.put('/api/delivery-location', { country: formData.get('country'), postalCode: formData.get('postalCode'), address: formData.get('address') });
+      window.dispatchEvent(new CustomEvent('delivery-location-updated', { detail: data.deliveryLocation }));
+      toast.success('Inquiry sent successfully!');
       form.submit();
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not save delivery location.');
@@ -207,7 +231,7 @@ const SendInquiry = () => {
                 {/* All form fields remain exactly the same – only spacing improved */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                  <input type="text" name="name" required disabled={!isAuthenticated} value={isAuthenticated ? displayName : ''} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100" placeholder="Enter your full name" />
+                  <input type="text" name="name" required disabled={!isAuthenticated} value={isAuthenticated ? inquiryName : ''} onChange={(event) => setInquiryName(event.target.value)} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100" placeholder="Enter your full name" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
@@ -219,21 +243,15 @@ const SendInquiry = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
-                  <select name="country" required disabled={!isAuthenticated} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100">
-                    <option value="">Select your country</option>
-                    <option value="Pakistan">Pakistan</option>
-                    <option value="United States">United States</option>
-                    {/* ... rest of options unchanged ... */}
-                    <option value="Other">Other</option>
-                  </select>
+                  <input type="text" name="country" required disabled={!isAuthenticated} value={deliveryLocation.country} onChange={(event) => setDeliveryLocation({ ...deliveryLocation, country: event.target.value })} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100"  placeholder="Enter country name" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
-                  <input type="text" name="postalCode" disabled={!isAuthenticated} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100" placeholder="Enter postal code" />
+                  <input type="text" name="postalCode" disabled={!isAuthenticated} value={deliveryLocation.postalCode} onChange={(event) => setDeliveryLocation({ ...deliveryLocation, postalCode: event.target.value })} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100" placeholder="Enter postal code" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Address *</label>
-                  <input type="text" name="address" required disabled={!isAuthenticated} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100" placeholder="Enter delivery address" />
+                  <input type="text" name="address" required disabled={!isAuthenticated} value={deliveryLocation.address} onChange={(event) => setDeliveryLocation({ ...deliveryLocation, address: event.target.value })} className="w-full border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:bg-gray-100" placeholder="Enter delivery address" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Company Name (Optional)</label>

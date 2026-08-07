@@ -17,6 +17,11 @@ type Product = {
   stockCount?: number;
 };
 
+type Review = {
+  productId: string | { toString(): string };
+  rating: number;
+};
+
 const categoryName = (category: string) =>
   category.split("-").map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ");
 
@@ -36,9 +41,28 @@ export default function CategoryPage() {
   const PRODUCTS_PER_PAGE = 6;
 
   useEffect(() => {
-    api.get("/api/products")
-      .then((response) => {
-        const data = (response.data || []).filter(
+    setLoading(true);
+    setVisibleCount(PRODUCTS_PER_PAGE);
+
+    Promise.all([api.get("/api/products"), api.get("/api/reviews")])
+      .then(([productsResponse, reviewsResponse]) => {
+        const reviewSummary = (reviewsResponse.data as Review[]).reduce<Record<string, { total: number; count: number }>>(
+          (summary, review) => {
+            const productId = review.productId.toString();
+            const current = summary[productId] || { total: 0, count: 0 };
+            current.total += review.rating;
+            current.count += 1;
+            summary[productId] = current;
+            return summary;
+          },
+          {}
+        );
+        const data = (productsResponse.data || []).map((product: Product) => {
+          const summary = reviewSummary[product._id];
+          return summary
+            ? { ...product, rating: summary.total / summary.count, numReviews: summary.count }
+            : { ...product, rating: 0, numReviews: 0 };
+        }).filter(
           (product: Product) => !category || product.category === category
         );
         setAllProducts(data);
@@ -109,8 +133,8 @@ export default function CategoryPage() {
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {visibleProducts.map((product) => {
                 const stock = getStockBadge(product);
-                const rating = product.rating ?? 4.5;
-                const numReviews = product.numReviews ?? 18;
+                const rating = product.rating ?? 0;
+                const numReviews = product.numReviews ?? 0;
 
                 return (
                   <Link
